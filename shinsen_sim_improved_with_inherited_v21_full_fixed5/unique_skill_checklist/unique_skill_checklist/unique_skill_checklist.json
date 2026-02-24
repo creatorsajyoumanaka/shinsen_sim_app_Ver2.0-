@@ -1,0 +1,570 @@
+[
+  {
+    "unit_name": "お市",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_夢幻泡影",
+    "unique_skill_name": "夢幻泡影"
+  },
+  {
+    "unit_name": "ねね",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_豊臣秀吉",
+    "unique_skill_name": "豊臣秀吉"
+  },
+  {
+    "unit_name": "一条信龍",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_不屈の精神",
+    "unique_skill_name": "不屈の精神"
+  },
+  {
+    "unit_name": "上杉謙信",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_軍神",
+    "unique_skill_name": "軍神"
+  },
+  {
+    "unit_name": "今川義元",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_海道一",
+    "unique_skill_name": "海道一"
+  },
+  {
+    "unit_name": "仙桃院",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_献身",
+    "unique_skill_name": "献身"
+  },
+  {
+    "unit_name": "伊達晴宗",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_掃疑平乱",
+    "unique_skill_name": "掃疑平乱"
+  },
+  {
+    "unit_name": "佐久間信盛",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_陣前無我",
+    "unique_skill_name": "陣前無我"
+  },
+  {
+    "unit_name": "内藤昌豊",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_死灰復然",
+    "unique_skill_name": "死灰復然"
+  },
+  {
+    "unit_name": "前田利家",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_槍の又左",
+    "unique_skill_name": "槍の又左"
+  },
+  {
+    "unit_name": "加藤清正",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_破竹の勢い",
+    "unique_skill_name": "破竹の勢い"
+  },
+  {
+    "unit_name": "北条氏康",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_相模の獅子",
+    "unique_skill_name": "相模の獅子"
+  },
+  {
+    "unit_name": "北条綱成",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_ため",
+    "unique_skill_name": "ため"
+  },
+  {
+    "unit_name": "十河一存",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_鬼十河",
+    "unique_skill_name": "鬼十河"
+  },
+  {
+    "unit_name": "千坂景親",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_耐苦鍛錬",
+    "unique_skill_name": "耐苦鍛錬"
+  },
+  {
+    "unit_name": "南部晴政",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_満ちゆく月",
+    "unique_skill_name": "満ちゆく月"
+  },
+  {
+    "unit_name": "原虎胤",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_夜叉美濃",
+    "unique_skill_name": "夜叉美濃"
+  },
+  {
+    "unit_name": "可児才蔵",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_笹の才蔵",
+    "unique_skill_name": "笹の才蔵"
+  },
+  {
+    "unit_name": "大祝鶴",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_月華鶴影",
+    "unique_skill_name": "月華鶴影"
+  },
+  {
+    "unit_name": "太田資正",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_三楽犬",
+    "unique_skill_name": "三楽犬"
+  },
+  {
+    "unit_name": "妻木煕子",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_内助の賢",
+    "unique_skill_name": "内助の賢"
+  },
+  {
+    "unit_name": "宇佐美定満",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_越後流軍学",
+    "unique_skill_name": "越後流軍学"
+  },
+  {
+    "unit_name": "安東愛季",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_斗星北天",
+    "unique_skill_name": "斗星北天"
+  },
+  {
+    "unit_name": "宮部継潤",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_積水成淵",
+    "unique_skill_name": "積水成淵"
+  },
+  {
+    "unit_name": "寿桂尼",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_尼御台",
+    "unique_skill_name": "尼御台"
+  },
+  {
+    "unit_name": "小島弥太郎",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_鬼小島",
+    "unique_skill_name": "鬼小島"
+  },
+  {
+    "unit_name": "尼子晴久",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_綱紀粛正",
+    "unique_skill_name": "綱紀粛正"
+  },
+  {
+    "unit_name": "山本勘助",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_先に行動できたほうが恩恵の大きい制御効果のため_勘助は速度に振って_先制で威圧_疲弊を付与できるようにするのがよいでしょう_威圧の付与確率も速度依存になっており_速度に振る恩恵は大きいです",
+    "unique_skill_name": "先に行動できたほうが恩恵の大きい制御効果のため_勘助は速度に振って_先制で威圧_疲弊を付与できるようにするのがよいでしょう_威圧の付与確率も速度依存になっており_速度に振る恩恵は大きいです"
+  },
+  {
+    "unit_name": "岡部元信",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_洞察反撃",
+    "unique_skill_name": "洞察反撃"
+  },
+  {
+    "unit_name": "島津貴久",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_旋乾転坤",
+    "unique_skill_name": "旋乾転坤"
+  },
+  {
+    "unit_name": "帰蝶",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_帰蝶の舞",
+    "unique_skill_name": "帰蝶の舞"
+  },
+  {
+    "unit_name": "徳川家康",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_三河魂",
+    "unique_skill_name": "三河魂"
+  },
+  {
+    "unit_name": "成田甲斐",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_東国無双の麗",
+    "unique_skill_name": "東国無双の麗"
+  },
+  {
+    "unit_name": "斎藤義龍",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_傲岸不遜",
+    "unique_skill_name": "傲岸不遜"
+  },
+  {
+    "unit_name": "明智光秀",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_波風",
+    "unique_skill_name": "波風"
+  },
+  {
+    "unit_name": "明智秀満",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_湖水渡り",
+    "unique_skill_name": "湖水渡り"
+  },
+  {
+    "unit_name": "朝倉義景",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_公家風流",
+    "unique_skill_name": "公家風流"
+  },
+  {
+    "unit_name": "本多忠勝",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_古今独歩",
+    "unique_skill_name": "古今独歩"
+  },
+  {
+    "unit_name": "本多正信",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_非常の器",
+    "unique_skill_name": "非常の器"
+  },
+  {
+    "unit_name": "本願寺顕如",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_一切皆空",
+    "unique_skill_name": "一切皆空"
+  },
+  {
+    "unit_name": "松平信康",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_勇志不抜",
+    "unique_skill_name": "勇志不抜"
+  },
+  {
+    "unit_name": "松永久秀",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_梟雄の計",
+    "unique_skill_name": "梟雄の計"
+  },
+  {
+    "unit_name": "板垣信方",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_先手必勝",
+    "unique_skill_name": "先手必勝"
+  },
+  {
+    "unit_name": "柴田勝家",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_かかれ柴田",
+    "unique_skill_name": "かかれ柴田"
+  },
+  {
+    "unit_name": "森可成",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_攻めの三左",
+    "unique_skill_name": "攻めの三左"
+  },
+  {
+    "unit_name": "榊原康政",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_徳川家康",
+    "unique_skill_name": "徳川家康"
+  },
+  {
+    "unit_name": "樋口兼豊",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_密報通暁",
+    "unique_skill_name": "密報通暁"
+  },
+  {
+    "unit_name": "武田信玄",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_属性調整で戦法効果の発動順を変えられる",
+    "unique_skill_name": "属性調整で戦法効果の発動順を変えられる"
+  },
+  {
+    "unit_name": "毛利元就",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_百万一心",
+    "unique_skill_name": "百万一心"
+  },
+  {
+    "unit_name": "毛利隆元",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_一心一徳",
+    "unique_skill_name": "一心一徳"
+  },
+  {
+    "unit_name": "河田長親",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_先制攻撃",
+    "unique_skill_name": "先制攻撃"
+  },
+  {
+    "unit_name": "津田算長",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_津田流砲術",
+    "unique_skill_name": "津田流砲術"
+  },
+  {
+    "unit_name": "浅井長政",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_ダメージを与えつつ離反効果で自身を回復できる_単体で完結した性能を持ちます_大将に設定しておくと友軍単体にも離反効果を付与できるため_兵刃アタッカーをもう1人配置しておくとさらに効果的です",
+    "unique_skill_name": "ダメージを与えつつ離反効果で自身を回復できる_単体で完結した性能を持ちます_大将に設定しておくと友軍単体にも離反効果を付与できるため_兵刃アタッカーをもう1人配置しておくとさらに効果的です"
+  },
+  {
+    "unit_name": "甘利虎泰",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_剛の武者",
+    "unique_skill_name": "剛の武者"
+  },
+  {
+    "unit_name": "甘粕景持",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_疾風怒濤",
+    "unique_skill_name": "疾風怒濤"
+  },
+  {
+    "unit_name": "真柄直隆",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_怪力無双",
+    "unique_skill_name": "怪力無双"
+  },
+  {
+    "unit_name": "福島正則",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_七本槍筆頭",
+    "unique_skill_name": "七本槍筆頭"
+  },
+  {
+    "unit_name": "稲葉一鉄",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_一徹の意志",
+    "unique_skill_name": "一徹の意志"
+  },
+  {
+    "unit_name": "立花道雪",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_なお",
+    "unique_skill_name": "なお"
+  },
+  {
+    "unit_name": "竹中半兵衛",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_運勝の鼻",
+    "unique_skill_name": "運勝の鼻"
+  },
+  {
+    "unit_name": "織田信長",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_新生",
+    "unique_skill_name": "新生"
+  },
+  {
+    "unit_name": "荒木村重",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_形影相弔",
+    "unique_skill_name": "形影相弔"
+  },
+  {
+    "unit_name": "蜂須賀小六",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_楼岸一番",
+    "unique_skill_name": "楼岸一番"
+  },
+  {
+    "unit_name": "諏訪姫",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_諏訪の光",
+    "unique_skill_name": "諏訪の光"
+  },
+  {
+    "unit_name": "豊臣秀吉",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_千成瓢箪",
+    "unique_skill_name": "千成瓢箪"
+  },
+  {
+    "unit_name": "酒井忠次",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_破陣乱舞",
+    "unique_skill_name": "破陣乱舞"
+  },
+  {
+    "unit_name": "長宗我部元親",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_鬼若子",
+    "unique_skill_name": "鬼若子"
+  },
+  {
+    "unit_name": "陶晴賢",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_冷徹無情",
+    "unique_skill_name": "冷徹無情"
+  },
+  {
+    "unit_name": "飯富虎昌",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_千軍辟易",
+    "unique_skill_name": "千軍辟易"
+  },
+  {
+    "unit_name": "馬場信春",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_自身で挑発を敵に付与する手段を持たないため",
+    "unique_skill_name": "自身で挑発を敵に付与する手段を持たないため"
+  },
+  {
+    "unit_name": "高力清長",
+    "rarity": null,
+    "camp": null,
+    "troop": null,
+    "unique_skill_id": "UNQ_仏の高力",
+    "unique_skill_name": "仏の高力"
+  }
+]

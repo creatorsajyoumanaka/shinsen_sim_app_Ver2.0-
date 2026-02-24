@@ -1,0 +1,1014 @@
+[
+  {
+    "unit_id": "お市",
+    "name": "お市",
+    "base_stats": {
+      "str": 64,
+      "int": 156,
+      "lea": 128,
+      "spd": 97
+    },
+    "unique_skill_id": "UNQ_夢幻泡影",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "ねね",
+    "name": "ねね",
+    "base_stats": {
+      "str": 58,
+      "int": 178,
+      "lea": 152,
+      "spd": 61
+    },
+    "unique_skill_id": "UNQ_比翼連理",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "一条信龍",
+    "name": "一条信龍",
+    "base_stats": {
+      "str": 156,
+      "int": 125,
+      "lea": 153,
+      "spd": 90
+    },
+    "unique_skill_id": "UNQ_不屈の精神",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "上杉謙信",
+    "name": "上杉謙信",
+    "base_stats": {
+      "str": 247,
+      "int": 124,
+      "lea": 186,
+      "spd": 138
+    },
+    "unique_skill_id": "UNQ_軍神",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "今川義元",
+    "name": "今川義元",
+    "base_stats": {
+      "str": 174,
+      "int": 177,
+      "lea": 194,
+      "spd": 132
+    },
+    "unique_skill_id": "UNQ_海道一",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "仙桃院",
+    "name": "仙桃院",
+    "base_stats": {
+      "str": 67,
+      "int": 140,
+      "lea": 148,
+      "spd": 94
+    },
+    "unique_skill_id": "UNQ_献身",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "伊達晴宗",
+    "name": "伊達晴宗",
+    "base_stats": {
+      "str": 181,
+      "int": 133,
+      "lea": 156,
+      "spd": 112
+    },
+    "unique_skill_id": "UNQ_掃疑平乱",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "佐久間信盛",
+    "name": "佐久間信盛",
+    "base_stats": {
+      "str": 95,
+      "int": 160,
+      "lea": 173,
+      "spd": 86
+    },
+    "unique_skill_id": "UNQ_陣前無我",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "内藤昌豊",
+    "name": "内藤昌豊",
+    "base_stats": {
+      "str": 101,
+      "int": 189,
+      "lea": 154,
+      "spd": 68
+    },
+    "unique_skill_id": "UNQ_死灰復然",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "前田利家",
+    "name": "前田利家",
+    "base_stats": {
+      "str": 186,
+      "int": 121,
+      "lea": 158,
+      "spd": 114
+    },
+    "unique_skill_id": "UNQ_槍の又左",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "加藤清正",
+    "name": "加藤清正",
+    "base_stats": {
+      "str": 191,
+      "int": 124,
+      "lea": 158,
+      "spd": 117
+    },
+    "unique_skill_id": "UNQ_破竹の勢い",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "北条氏康",
+    "name": "北条氏康",
+    "base_stats": {
+      "str": 137,
+      "int": 188,
+      "lea": 182,
+      "spd": 100
+    },
+    "unique_skill_id": "UNQ_相模の獅子",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "北条綱成",
+    "name": "北条綱成",
+    "base_stats": {
+      "str": 224,
+      "int": 155,
+      "lea": 165,
+      "spd": 154
+    },
+    "unique_skill_id": "UNQ_地黄八幡",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "十河一存",
+    "name": "十河一存",
+    "base_stats": {
+      "str": 205,
+      "int": 104,
+      "lea": 123,
+      "spd": 106
+    },
+    "unique_skill_id": "UNQ_鬼十河",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "千坂景親",
+    "name": "千坂景親",
+    "base_stats": {
+      "str": 161,
+      "int": 106,
+      "lea": 164,
+      "spd": 96
+    },
+    "unique_skill_id": "UNQ_耐苦鍛錬",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "南部晴政",
+    "name": "南部晴政",
+    "base_stats": {
+      "str": 169,
+      "int": 79,
+      "lea": 164,
+      "spd": 152
+    },
+    "unique_skill_id": "UNQ_満ちゆく月",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "原虎胤",
+    "name": "原虎胤",
+    "base_stats": {
+      "str": 185,
+      "int": 96,
+      "lea": 108,
+      "spd": 69
+    },
+    "unique_skill_id": "UNQ_夜叉美濃",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "可児才蔵",
+    "name": "可児才蔵",
+    "base_stats": {
+      "str": 183,
+      "int": 104,
+      "lea": 97,
+      "spd": 95
+    },
+    "unique_skill_id": "UNQ_笹の才蔵",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "大祝鶴",
+    "name": "大祝鶴",
+    "base_stats": {
+      "str": 171,
+      "int": 142,
+      "lea": 144,
+      "spd": 75
+    },
+    "unique_skill_id": "UNQ_月華鶴影",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "太田資正",
+    "name": "太田資正",
+    "base_stats": {
+      "str": 179,
+      "int": 141,
+      "lea": 159,
+      "spd": 155
+    },
+    "unique_skill_id": "UNQ_三楽犬",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "妻木煕子",
+    "name": "妻木煕子",
+    "base_stats": {
+      "str": 55,
+      "int": 182,
+      "lea": 116,
+      "spd": 60
+    },
+    "unique_skill_id": "UNQ_内助の賢",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "宇佐美定満",
+    "name": "宇佐美定満",
+    "base_stats": {
+      "str": 112,
+      "int": 209,
+      "lea": 153,
+      "spd": 103
+    },
+    "unique_skill_id": "UNQ_越後流軍学",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "安東愛季",
+    "name": "安東愛季",
+    "base_stats": {
+      "str": 110,
+      "int": 174,
+      "lea": 174,
+      "spd": 70
+    },
+    "unique_skill_id": "UNQ_斗星北天",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "宮部継潤",
+    "name": "宮部継潤",
+    "base_stats": {
+      "str": 72,
+      "int": 199,
+      "lea": 153,
+      "spd": 77
+    },
+    "unique_skill_id": "UNQ_積水成淵",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "寿桂尼",
+    "name": "寿桂尼",
+    "base_stats": {
+      "str": 35,
+      "int": 183,
+      "lea": 148,
+      "spd": 34
+    },
+    "unique_skill_id": "UNQ_尼御台",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "小島弥太郎",
+    "name": "小島弥太郎",
+    "base_stats": {
+      "str": 193,
+      "int": 57,
+      "lea": 85,
+      "spd": 105
+    },
+    "unique_skill_id": "UNQ_鬼小島",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "尼子晴久",
+    "name": "尼子晴久",
+    "base_stats": {
+      "str": 121,
+      "int": 162,
+      "lea": 162,
+      "spd": 59
+    },
+    "unique_skill_id": "UNQ_綱紀粛正",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "山本勘助",
+    "name": "山本勘助",
+    "base_stats": {
+      "str": 103,
+      "int": 224,
+      "lea": 155,
+      "spd": 117
+    },
+    "unique_skill_id": "UNQ_啄木鳥",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "岡部元信",
+    "name": "岡部元信",
+    "base_stats": {
+      "str": 134,
+      "int": 179,
+      "lea": 131,
+      "spd": 63
+    },
+    "unique_skill_id": "UNQ_洞察反撃",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "島津貴久",
+    "name": "島津貴久",
+    "base_stats": {
+      "str": 100,
+      "int": 178,
+      "lea": 160,
+      "spd": 84
+    },
+    "unique_skill_id": "UNQ_旋乾転坤",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "帰蝶",
+    "name": "帰蝶",
+    "base_stats": {
+      "str": 99,
+      "int": 177,
+      "lea": 161,
+      "spd": 139
+    },
+    "unique_skill_id": "UNQ_帰蝶の舞",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "徳川家康",
+    "name": "徳川家康",
+    "base_stats": {
+      "str": 155,
+      "int": 169,
+      "lea": 231,
+      "spd": 61
+    },
+    "unique_skill_id": "UNQ_三河魂",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "成田甲斐",
+    "name": "成田甲斐",
+    "base_stats": {
+      "str": 164,
+      "int": 117,
+      "lea": 145,
+      "spd": 117
+    },
+    "unique_skill_id": "UNQ_東国無双の麗",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "斎藤義龍",
+    "name": "斎藤義龍",
+    "base_stats": {
+      "str": 163,
+      "int": 142,
+      "lea": 165,
+      "spd": 108
+    },
+    "unique_skill_id": "UNQ_傲岸不遜",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "明智光秀",
+    "name": "明智光秀",
+    "base_stats": {
+      "str": 140,
+      "int": 220,
+      "lea": 183,
+      "spd": 116
+    },
+    "unique_skill_id": "UNQ_時は今",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "明智秀満",
+    "name": "明智秀満",
+    "base_stats": {
+      "str": 129,
+      "int": 182,
+      "lea": 147,
+      "spd": 61
+    },
+    "unique_skill_id": "UNQ_湖水渡り",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "朝倉義景",
+    "name": "朝倉義景",
+    "base_stats": {
+      "str": 53,
+      "int": 112,
+      "lea": 110,
+      "spd": 158
+    },
+    "unique_skill_id": "UNQ_公家風流",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "本多忠勝",
+    "name": "本多忠勝",
+    "base_stats": {
+      "str": 229,
+      "int": 116,
+      "lea": 169,
+      "spd": 81
+    },
+    "unique_skill_id": "UNQ_古今独歩",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "本多正信",
+    "name": "本多正信",
+    "base_stats": {
+      "str": 43,
+      "int": 192,
+      "lea": 83,
+      "spd": 86
+    },
+    "unique_skill_id": "UNQ_非常の器",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "本願寺顕如",
+    "name": "本願寺顕如",
+    "base_stats": {
+      "str": 119,
+      "int": 180,
+      "lea": 182,
+      "spd": 78
+    },
+    "unique_skill_id": "UNQ_一切皆空",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "松平信康",
+    "name": "松平信康",
+    "base_stats": {
+      "str": 179,
+      "int": 131,
+      "lea": 160,
+      "spd": 141
+    },
+    "unique_skill_id": "UNQ_勇志不抜",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "松永久秀",
+    "name": "松永久秀",
+    "base_stats": {
+      "str": 113,
+      "int": 222,
+      "lea": 173,
+      "spd": 110
+    },
+    "unique_skill_id": "UNQ_梟雄の計",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "板垣信方",
+    "name": "板垣信方",
+    "base_stats": {
+      "str": 88,
+      "int": 176,
+      "lea": 165,
+      "spd": 47
+    },
+    "unique_skill_id": "UNQ_先手必勝",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "柴田勝家",
+    "name": "柴田勝家",
+    "base_stats": {
+      "str": 208,
+      "int": 138,
+      "lea": 162,
+      "spd": 167
+    },
+    "unique_skill_id": "UNQ_かかれ柴田",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "森可成",
+    "name": "森可成",
+    "base_stats": {
+      "str": 189,
+      "int": 112,
+      "lea": 145,
+      "spd": 125
+    },
+    "unique_skill_id": "UNQ_攻めの三左",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "榊原康政",
+    "name": "榊原康政",
+    "base_stats": {
+      "str": 182,
+      "int": 140,
+      "lea": 155,
+      "spd": 151
+    },
+    "unique_skill_id": "UNQ_無想掃射",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "樋口兼豊",
+    "name": "樋口兼豊",
+    "base_stats": {
+      "str": 89,
+      "int": 165,
+      "lea": 139,
+      "spd": 122
+    },
+    "unique_skill_id": "UNQ_密報通暁",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "武田信玄",
+    "name": "武田信玄",
+    "base_stats": {
+      "str": 191,
+      "int": 195,
+      "lea": 202,
+      "spd": 139
+    },
+    "unique_skill_id": "UNQ_風林火山",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "毛利元就",
+    "name": "毛利元就",
+    "base_stats": {
+      "str": 110,
+      "int": 247,
+      "lea": 180,
+      "spd": 63
+    },
+    "unique_skill_id": "UNQ_百万一心",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "毛利隆元",
+    "name": "毛利隆元",
+    "base_stats": {
+      "str": 92,
+      "int": 165,
+      "lea": 165,
+      "spd": 56
+    },
+    "unique_skill_id": "UNQ_一心一徳",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "河田長親",
+    "name": "河田長親",
+    "base_stats": {
+      "str": 69,
+      "int": 166,
+      "lea": 146,
+      "spd": 126
+    },
+    "unique_skill_id": "UNQ_先制攻撃",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "津田算長",
+    "name": "津田算長",
+    "base_stats": {
+      "str": 156,
+      "int": 145,
+      "lea": 145,
+      "spd": 94
+    },
+    "unique_skill_id": "UNQ_津田流砲術",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "浅井長政",
+    "name": "浅井長政",
+    "base_stats": {
+      "str": 184,
+      "int": 129,
+      "lea": 161,
+      "spd": 123
+    },
+    "unique_skill_id": "UNQ_湖北仁義",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "甘利虎泰",
+    "name": "甘利虎泰",
+    "base_stats": {
+      "str": 176,
+      "int": 94,
+      "lea": 163,
+      "spd": 59
+    },
+    "unique_skill_id": "UNQ_剛の武者",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "甘粕景持",
+    "name": "甘粕景持",
+    "base_stats": {
+      "str": 186,
+      "int": 150,
+      "lea": 147,
+      "spd": 94
+    },
+    "unique_skill_id": "UNQ_疾風怒濤",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "真柄直隆",
+    "name": "真柄直隆",
+    "base_stats": {
+      "str": 202,
+      "int": 112,
+      "lea": 108,
+      "spd": 70
+    },
+    "unique_skill_id": "UNQ_怪力無双",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "福島正則",
+    "name": "福島正則",
+    "base_stats": {
+      "str": 206,
+      "int": 120,
+      "lea": 151,
+      "spd": 117
+    },
+    "unique_skill_id": "UNQ_七本槍筆頭",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "稲葉一鉄",
+    "name": "稲葉一鉄",
+    "base_stats": {
+      "str": 101,
+      "int": 150,
+      "lea": 175,
+      "spd": 56
+    },
+    "unique_skill_id": "UNQ_一徹の意志",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "立花道雪",
+    "name": "立花道雪",
+    "base_stats": {
+      "str": 193,
+      "int": 148,
+      "lea": 173,
+      "spd": 120
+    },
+    "unique_skill_id": "UNQ_電光雷轟",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "竹中半兵衛",
+    "name": "竹中半兵衛",
+    "base_stats": {
+      "str": 89,
+      "int": 231,
+      "lea": 160,
+      "spd": 76
+    },
+    "unique_skill_id": "UNQ_十面埋伏",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "織田信長",
+    "name": "織田信長",
+    "base_stats": {
+      "str": 161,
+      "int": 175,
+      "lea": 231,
+      "spd": 110
+    },
+    "unique_skill_id": "UNQ_新生",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "荒木村重",
+    "name": "荒木村重",
+    "base_stats": {
+      "str": 91,
+      "int": 185,
+      "lea": 158,
+      "spd": 64
+    },
+    "unique_skill_id": "UNQ_形影相弔",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "蜂須賀小六",
+    "name": "蜂須賀小六",
+    "base_stats": {
+      "str": 166,
+      "int": 173,
+      "lea": 126,
+      "spd": 79
+    },
+    "unique_skill_id": "UNQ_楼岸一番",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "諏訪姫",
+    "name": "諏訪姫",
+    "base_stats": {
+      "str": 75,
+      "int": 145,
+      "lea": 143,
+      "spd": 100
+    },
+    "unique_skill_id": "UNQ_諏訪の光",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "豊臣秀吉",
+    "name": "豊臣秀吉",
+    "base_stats": {
+      "str": 111,
+      "int": 228,
+      "lea": 180,
+      "spd": 81
+    },
+    "unique_skill_id": "UNQ_千成瓢箪",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "酒井忠次",
+    "name": "酒井忠次",
+    "base_stats": {
+      "str": 187,
+      "int": 153,
+      "lea": 187,
+      "spd": 119
+    },
+    "unique_skill_id": "UNQ_破陣乱舞",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "長宗我部元親",
+    "name": "長宗我部元親",
+    "base_stats": {
+      "str": 188,
+      "int": 166,
+      "lea": 190,
+      "spd": 96
+    },
+    "unique_skill_id": "UNQ_鬼若子",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "陶晴賢",
+    "name": "陶晴賢",
+    "base_stats": {
+      "str": 185,
+      "int": 149,
+      "lea": 166,
+      "spd": 85
+    },
+    "unique_skill_id": "UNQ_冷徹無情",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "飯富虎昌",
+    "name": "飯富虎昌",
+    "base_stats": {
+      "str": 203,
+      "int": 95,
+      "lea": 136,
+      "spd": 109
+    },
+    "unique_skill_id": "UNQ_甲山猛虎",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "馬場信春",
+    "name": "馬場信春",
+    "base_stats": {
+      "str": 161,
+      "int": 170,
+      "lea": 203,
+      "spd": 102
+    },
+    "unique_skill_id": "UNQ_鬼美濃",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "高力清長",
+    "name": "高力清長",
+    "base_stats": {
+      "str": 104,
+      "int": 148,
+      "lea": 180,
+      "spd": 76
+    },
+    "unique_skill_id": "UNQ_仏の高力",
+    "max_soldiers": 10000
+  },
+  {
+    "unit_id": "相馬盛胤",
+    "name": "相馬盛胤",
+    "base_stats": {
+      "str": 166,
+      "int": 98,
+      "lea": 156,
+      "spd": 107,
+      "pol": 106,
+      "cha": 96
+    },
+    "unique_skill_id": "UNQ_先陣鼓舞",
+    "max_soldiers": 10000,
+    "wu": 166,
+    "int": 98,
+    "lea": 156,
+    "spd": 107,
+    "pol": 106,
+    "cha": 96
+  },
+  {
+    "unit_id": "前田慶次",
+    "name": "前田慶次",
+    "base_stats": {
+      "str": 207,
+      "int": 132,
+      "lea": 127,
+      "spd": 123,
+      "pol": 52,
+      "cha": 86
+    },
+    "unique_skill_id": "UNQ_天下御免",
+    "max_soldiers": 10000,
+    "wu": 207,
+    "int": 132,
+    "lea": 127,
+    "spd": 123,
+    "pol": 52,
+    "cha": 86
+  },
+  {
+    "unit_id": "黒田官兵衛",
+    "name": "黒田官兵衛",
+    "base_stats": {
+      "str": 114,
+      "int": 229,
+      "lea": 167,
+      "spd": 68,
+      "pol": 158,
+      "cha": 150
+    },
+    "unique_skill_id": "UNQ_水の如し",
+    "max_soldiers": 10000,
+    "wu": 114,
+    "int": 229,
+    "lea": 167,
+    "spd": 68,
+    "pol": 158,
+    "cha": 150
+  },
+  {
+    "unit_id": "高橋紹運",
+    "name": "高橋紹運",
+    "base_stats": {
+      "str": 190,
+      "int": 169,
+      "lea": 184,
+      "spd": 108,
+      "pol": 97,
+      "cha": 105
+    },
+    "unique_skill_id": "UNQ_豊後の戦陣",
+    "max_soldiers": 10000,
+    "wu": 190,
+    "int": 169,
+    "lea": 184,
+    "spd": 108,
+    "pol": 97,
+    "cha": 105
+  },
+  {
+    "unit_id": "山県昌景",
+    "name": "山県昌景",
+    "base_stats": {
+      "str": 224,
+      "int": 140,
+      "lea": 169,
+      "spd": 162,
+      "pol": 108,
+      "cha": 106
+    },
+    "unique_skill_id": "UNQ_武田之赤備",
+    "max_soldiers": 10000,
+    "wu": 224,
+    "int": 140,
+    "lea": 169,
+    "spd": 162,
+    "pol": 108,
+    "cha": 106
+  },
+  {
+    "unit_id": "瑞溪院",
+    "name": "瑞溪院",
+    "base_stats": {
+      "str": 46,
+      "int": 144,
+      "lea": 139,
+      "spd": 78,
+      "pol": 134,
+      "cha": 116
+    },
+    "unique_skill_id": "UNQ_諸行無常",
+    "max_soldiers": 10000,
+    "wu": 46,
+    "int": 144,
+    "lea": 139,
+    "spd": 78,
+    "pol": 134,
+    "cha": 116
+  },
+  {
+    "unit_id": "里見義堯",
+    "name": "里見義堯",
+    "base_stats": {
+      "str": 107,
+      "int": 166,
+      "lea": 166,
+      "spd": 81,
+      "pol": 100,
+      "cha": 86
+    },
+    "unique_skill_id": "UNQ_仁者の沈勇",
+    "max_soldiers": 10000,
+    "wu": 107,
+    "int": 166,
+    "lea": 166,
+    "spd": 81,
+    "pol": 100,
+    "cha": 86
+  },
+  {
+    "unit_id": "大内義隆",
+    "name": "大内義隆",
+    "base_stats": {
+      "str": 79,
+      "int": 151,
+      "lea": 172,
+      "spd": 74,
+      "pol": 180,
+      "cha": 152
+    },
+    "unique_skill_id": "UNQ_末世の道者",
+    "max_soldiers": 10000,
+    "wu": 79,
+    "int": 151,
+    "lea": 172,
+    "spd": 74,
+    "pol": 180,
+    "cha": 152
+  }
+]
