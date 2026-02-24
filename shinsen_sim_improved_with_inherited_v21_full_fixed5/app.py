@@ -358,7 +358,7 @@ def render_unit_panel(side: str, name: str, idx: int):
         with st.expander("固有戦法: なし/不明"):
             st.caption("この武将の固有戦法が unique_skills.json に見つかりません。")
 
-    st.markdown("**伝授戦法（入力可 / Lv20 & 覚醒）**")
+    st.markdown("**伝授戦法（入力可 / 最大Lv10固定 & 覚醒）**")
     inh_kw = st.text_input("伝授戦法検索（この武将）", value="", placeholder="例：回天 / 火計 / 無策", key=f"{side}_{idx}_inh_kw")
     local_names = filtered_names
     if inh_kw.strip():
@@ -371,11 +371,11 @@ def render_unit_panel(side: str, name: str, idx: int):
     c1, c2 = st.columns(2)
     with c1:
         sk1 = st.selectbox(f"伝授1（{name}）", options=["—"] + local_names, key=f"{side}_{idx}_sk1")
-        lv1 = st.slider("Lv", 1, 20, 20, key=f"{side}_{idx}_lv1")
+        lv1 = 10  # 伝授戦法Lvは最大10固定（真戦仕様）
         aw1 = st.checkbox("覚醒", value=True, key=f"{side}_{idx}_aw1")
     with c2:
         sk2 = st.selectbox(f"伝授2（{name}）", options=["—"] + local_names, key=f"{side}_{idx}_sk2")
-        lv2 = st.slider("Lv ", 1, 20, 20, key=f"{side}_{idx}_lv2")
+        lv2 = 10  # 伝授戦法Lvは最大10固定（真戦仕様）
         aw2 = st.checkbox("覚醒 ", value=True, key=f"{side}_{idx}_aw2")
 
     chosen = []
