@@ -495,5 +495,5 @@ if st.button("シミュ実行", type="primary"):
         st.dataframe(style_log(show), use_container_width=True, height=520)
 
     st.markdown("### 注意")
-    st.write("- 固有戦法は **表示のみ**（シミュレーションには反映しません）")
+    st.write("- 固有戦法はシミュレーションに反映されます（※発動判定あり）")
     st.write("- 伝授戦法は raw が未登録だと **発動ログのみ** になります。必要な戦法から順に raw を追加すれば、効果も反映されます。")
