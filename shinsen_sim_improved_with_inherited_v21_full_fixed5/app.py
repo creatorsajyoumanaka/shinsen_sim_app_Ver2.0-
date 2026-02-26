@@ -6,7 +6,76 @@ from pathlib import Path
 import streamlit as st
 import engine
 import pandas as pd
+import streamlit.components.v1 as components
 
+_LAST_KEY = "shinsen_sim:last_comp_v1"
+
+
+def _ls_set(key: str, value: dict):
+    payload = json.dumps(value, ensure_ascii=False)
+    components.html(
+        f"<script>localStorage.setItem({json.dumps(key)}, {json.dumps(payload)});</script>",
+        height=0,
+    )
+
+
+def _ls_get(key: str):
+    """
+    localStorage を読む。
+    StreamlitはJS→Pythonの直接返却が弱いので query_params を経由して読み込む。
+    """
+    components.html(
+        f"""
+        <script>
+        const v = localStorage.getItem({json.dumps(key)}) || "";
+        const url = new URL(window.location);
+        if (v) url.searchParams.set("ls_load", encodeURIComponent(v));
+        else url.searchParams.delete("ls_load");
+        window.history.replaceState(null, "", url.toString());
+        </script>
+        """,
+        height=0,
+    )
+    qp = st.query_params
+    if "ls_load" in qp:
+        try:
+            # decodeURIComponent 相当（簡易）
+            return json.loads(json.loads(f'"{qp["ls_load"]}"'))
+        except Exception:
+            return None
+    return None
+
+
+def _build_comp_state() -> dict:
+    """
+    session_state から「編成に関係するキー」だけ拾って保存する（汎用版）
+    """
+    keep = {}
+    for k, v in st.session_state.items():
+        ks = str(k)
+        # ally/enemy のユニット選択・伝授・覚醒っぽいキーだけ拾う
+        if any(x in ks for x in ["ally", "enemy"]) and any(
+            x in ks for x in ["unit", "name", "skill", "inh", "us_", "awake"]
+        ):
+            try:
+                json.dumps(v, ensure_ascii=False)
+                keep[ks] = v
+            except Exception:
+                pass
+
+    # 全体設定も保存したいなら（存在するものだけ）
+    for opt_key in ["seed", "TROOP_SCALE", "troop_scale"]:
+        if opt_key in st.session_state:
+            keep[opt_key] = st.session_state[opt_key]
+
+    return keep
+
+
+def _apply_comp_state(data: dict):
+    if not isinstance(data, dict):
+        return
+    for k, v in data.items():
+        st.session_state[k] = v
 from engine import Unit, Skill, simulate_battle, extract_max_from_arrow, parse_probability_max
 
 APP_TITLE = "信長真戦シミュレーター（Ver2.0.1）"
