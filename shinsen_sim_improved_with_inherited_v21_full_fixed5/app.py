@@ -9,7 +9,7 @@ import pandas as pd
 
 from engine import Unit, Skill, simulate_battle, extract_max_from_arrow, parse_probability_max
 
-APP_TITLE = "信長真戦シミュレーター（改良版）"
+APP_TITLE = "信長真戦シミュレーター（Ver2.0.1）"
 
 DATA_DIR = Path(__file__).parent
 UNITS_PATH = DATA_DIR / "units.json"
