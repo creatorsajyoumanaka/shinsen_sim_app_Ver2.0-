@@ -327,6 +327,29 @@ st.title(APP_TITLE)
 
 with st.sidebar:
     st.header("データ追加（任意）")
+    st.markdown("### 編成の保存（このPC/ブラウザ）")
+c1, c2, c3 = st.columns(3)
+
+with c1:
+    if st.button("💾保存", key="save_comp"):
+        _ls_set(_LAST_KEY, _build_comp_state())
+        st.success("保存しました")
+
+with c2:
+    if st.button("↩復元", key="load_comp"):
+        loaded = _ls_get(_LAST_KEY)
+        if loaded:
+            _apply_comp_state(loaded)
+            st.rerun()
+        else:
+            st.warning("保存がありません")
+
+with c3:
+    if st.button("🧹削除", key="clear_comp"):
+        _ls_set(_LAST_KEY, {})
+        st.success("削除しました")
+
+st.divider()
     st.caption("伝授戦法の効果テキスト（raw）が未登録のものは、発動ログのみ出して効果は反映しません。ここで追加すると反映できます。")
     with st.expander("伝授戦法（custom）を追加"):
         cname = st.text_input("戦法名", key="custom_skill_name")
