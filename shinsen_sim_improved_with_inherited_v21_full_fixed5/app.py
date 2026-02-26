@@ -10,7 +10,6 @@ import streamlit.components.v1 as components
 
 _LAST_KEY = "shinsen_sim:last_comp_v1"
 
-
 def _ls_set(key: str, value: dict):
     payload = json.dumps(value, ensure_ascii=False)
     components.html(
@@ -20,15 +19,11 @@ def _ls_set(key: str, value: dict):
 
 
 def _ls_get(key: str):
-    """
-    localStorage を読む。
-    StreamlitはJS→Pythonの直接返却が弱いので query_params を経由して読み込む。
-    """
     components.html(
         f"""
         <script>
         const v = localStorage.getItem({json.dumps(key)}) || "";
-        const url = new URL(window.location);
+        const url = new URL(window.location.href);
         if (v) url.searchParams.set("ls_load", encodeURIComponent(v));
         else url.searchParams.delete("ls_load");
         window.history.replaceState(null, "", url.toString());
@@ -36,14 +31,20 @@ def _ls_get(key: str):
         """,
         height=0,
     )
+
     qp = st.query_params
-    if "ls_load" in qp:
-        try:
-            # decodeURIComponent 相当（簡易）
-            return json.loads(json.loads(f'"{qp["ls_load"]}"'))
-        except Exception:
-            return None
-    return None
+    v = qp.get("ls_load")
+    if not v:
+        return None
+    if isinstance(v, list):
+        v = v[0]
+
+    try:
+        import urllib.parse
+        decoded = urllib.parse.unquote(v)
+        return json.loads(decoded)
+    except Exception:
+        return None
 
 
 def _build_comp_state() -> dict:
