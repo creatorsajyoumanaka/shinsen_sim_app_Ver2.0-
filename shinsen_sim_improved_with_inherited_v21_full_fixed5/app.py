@@ -327,11 +327,11 @@ st.set_page_config(page_title=APP_TITLE, layout="wide")
 st.title(APP_TITLE)
 
 with st.sidebar:
-    st.sidebar.error("★SIDEBAR TEST★")
+    st.error("★SIDEBAR TEST★")
     st.header("データ追加（任意）")
 
     st.markdown("### 編成の保存（このPC/ブラウザ）")
-    c1, c2, c3 = st.columns(3)
+    c1, c2, c3 = st.sidebar.columns(3)
 
     with c1:
         if st.button("💾保存", key="save_comp"):
