@@ -341,6 +341,20 @@ def _try_cast_skill(
     targets_mode = detect_targets(raw)
     rate = parse_first_rate(raw, level=skill.level, awaken=skill.awaken)
 
+    # ---- Passive/Command special effects (best-effort) ----
+# Passive: double attack (連撃) and stat bonus (武勇+X)
+if raw:
+    # 連撃（通常攻撃2回）
+    if "連撃" in raw:
+        # 永続扱い（turnsを大きくしておく）
+        unit.statuses.setdefault("double_attack", {"turns": 999999})
+
+    # 武勇がXX増加（重複加算しないよう一回だけ）
+    m = re.search(r"武勇が\s*(\d+)\s*増加", raw)
+    if m:
+        if "bonus_wu" not in unit.statuses:
+            unit.wu += int(m.group(1))
+            unit.statuses["bonus_wu"] = {"turns": 999999}
     # Unknown skill: cast but no effect
     if not raw or (dmg_type is None and "回復" not in raw and "回復率" not in raw and rate is None):
         return True, "発動（効果未登録）", []
