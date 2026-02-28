@@ -531,6 +531,15 @@ if "disarm" in actor.statuses:
     )
     _tick_statuses(actor)
     continue
+# seal_attack: 通常攻撃不可（確率）
+if "seal_attack" in actor.statuses:
+    p = float(actor.statuses["seal_attack"].get("p", 0.70))
+    if rng.random() < p:
+        logs.append(
+            LogRow(turn, idx, actor.side, actor.name, "fail", "通常攻撃不可", f"封撃（{int(p*100)}%）", actor_hp=actor.soldiers)
+        )
+        _tick_statuses(actor)
+        continue
 
 targets = [u for u in actor_enemies if u.alive()]
 if not targets:
