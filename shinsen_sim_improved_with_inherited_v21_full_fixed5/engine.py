@@ -534,14 +534,13 @@ def simulate_battle(
             if not targets:
                 break
             target = rng.choice(targets) if confused else targets[0]  # default hit front/first alive
-            matchup = _matchup(actor, target)
+matchup = _matchup(actor, target)
 
-# ★ここ：連撃なら2回、通常は1回
 hits = 2 if "double_attack" in actor.statuses else 1
 
 for h in range(hits):
     if not target.alive():
-        break  # 1発目で倒したら終了
+        break
 
     dmg = damage_physical(actor, target, 1.0, matchup, rng)
     target.soldiers = max(0, target.soldiers - dmg)
@@ -562,7 +561,7 @@ for h in range(hits):
         )
     )
 
-            _tick_statuses(actor)
+_tick_statuses(actor)
 
         if not any(u.alive() for u in allies) or not any(u.alive() for u in enemies):
             break
