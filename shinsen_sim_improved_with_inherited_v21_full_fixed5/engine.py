@@ -564,11 +564,6 @@ for h in range(hits):
 
             _tick_statuses(actor)
 
-        # cleanup expired statuses at end of turn already via tick, but also tick for non-acting units:
-        for u in allies + enemies:
-            if u.alive():
-                _tick_statuses(u)
-
         if not any(u.alive() for u in allies) or not any(u.alive() for u in enemies):
             break
 
