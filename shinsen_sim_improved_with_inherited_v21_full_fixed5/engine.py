@@ -560,57 +560,60 @@ def simulate_battle(
                 _tick_statuses(actor)
                 continue
 
-# Otherwise normal attack
-# disarm prevents normal attack
-if "disarm" in actor.statuses:
-    logs.append(
-        LogRow(turn, idx, actor.side, actor.name, "fail", "通常攻撃不可", "封撃", actor_hp=actor.soldiers)
-    )
-    _tick_statuses(actor)
-    continue
-# seal_attack: 通常攻撃不可（確率）
-if "seal_attack" in actor.statuses:
-    p = float(actor.statuses["seal_attack"].get("p", 0.70))
-    if rng.random() < p:
-        logs.append(
-            LogRow(turn, idx, actor.side, actor.name, "fail", "通常攻撃不可", f"封撃（{int(p*100)}%）", actor_hp=actor.soldiers)
-        )
-        _tick_statuses(actor)
-        continue
+            # Otherwise normal attack
+            # disarm prevents normal attack
+            if "disarm" in actor.statuses:
+                logs.append(
+                    LogRow(turn, idx, actor.side, actor.name, "fail", "通常攻撃不可", "封撃", actor_hp=actor.soldiers)
+                )
+                continue
 
-targets = [u for u in actor_enemies if u.alive()]
-if not targets:
-    break
+            # seal_attack: chance-based normal attack block（気炎万丈）
+            if "seal_attack" in actor.statuses:
+                stt = actor.statuses["seal_attack"]
+                p = float(stt.get("p", 0.70))
+                if rng.random() < p:
+                    logs.append(
+                        LogRow(turn, idx, actor.side, actor.name, "fail", "通常攻撃不可", f"封撃（{int(p*100)}%）", actor_hp=actor.soldiers)
+                    )
+                    continue
 
-target = rng.choice(targets) if confused else targets[0]
-matchup = _matchup(actor, target)
+            targets = [u for u in actor_enemies if u.alive()]
+            if not targets:
+                break
 
-# ★ここ：連撃なら2回、通常は1回
-hits = 2 if "double_attack" in actor.statuses else 1
+            # ★ここ：連撃なら2回、通常は1回
+            hits = 2 if "double_attack" in actor.statuses else 1
 
-for h in range(hits):
-    if not target.alive():
-        targets = [u for u in actor_enemies if u.alive()]
-        if not targets:
-            break
-        target = rng.choice(targets) if confused else targets[0]
+            # 1発目のターゲット
+            target = rng.choice(targets) if confused else targets[0]
 
-    dmg = damage_physical(actor, target, 1.0, matchup, rng)
-    target.soldiers = max(0, target.soldiers - dmg)
-    atk_name = "通常攻撃" if hits == 1 else f"通常攻撃({h+1}/{hits})"
-    logs.append(
-        LogRow(
-            turn,
-            idx,
-            actor.side,
-            actor.name,
-            "normal",
-            atk_name,
-            f"{target.name} -{dmg}（残兵 {target.soldiers}）",
-            actor_hp=actor.soldiers,
-            target_hp=target.soldiers,
-        )
-    )
+            for h in range(hits):
+                if not target.alive():
+                    # 次の生存ターゲットに切り替え
+                    targets = [u for u in actor_enemies if u.alive()]
+                    if not targets:
+                        break
+                    target = rng.choice(targets) if confused else targets[0]
+
+                matchup = _matchup(actor, target)
+                dmg = damage_physical(actor, target, 1.0, matchup, rng)
+                target.soldiers = max(0, target.soldiers - dmg)
+
+                atk_name = "通常攻撃" if hits == 1 else f"通常攻撃({h+1}/{hits})"
+                logs.append(
+                    LogRow(
+                        turn,
+                        idx,
+                        actor.side,
+                        actor.name,
+                        "normal",
+                        atk_name,
+                        f"{target.name} -{dmg}（残兵 {target.soldiers}）",
+                        actor_hp=actor.soldiers,
+                        target_hp=target.soldiers,
+                    )
+                )
 
 _tick_statuses(actor)
 
