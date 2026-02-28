@@ -114,6 +114,7 @@ def detect_targets(raw: str) -> str:
     if "自分" in raw or "自身" in raw:
         return "self"
     return "enemy_single"
+    
 # Status keywords (best-effort)
 STATUS_KEYWORDS = {
     "威圧": "stun",
@@ -256,7 +257,7 @@ def _matchup(attacker: Unit, defender: Unit) -> float:
 def _tick_statuses(unit: Unit):
     to_del = []
     for k, v in unit.statuses.items():
-        # seal_attack: decay probability each tick
+        # seal_attack: decay probability each turn
         if k == "seal_attack":
             p = float(v.get("p", 0.70))
             decay = float(v.get("decay", 0.14))
@@ -323,7 +324,39 @@ def _choose_target(attacker: Unit, allies: List[Unit], enemies: List[Unit], targ
     if target_mode == "self":
         return [attacker]
     return []
+def _apply_opening_effects(allies: List[Unit], enemies: List[Unit], rng: random.Random, logs: List[LogRow]):
+    # 開幕で passive/command のうち「それっぽい効果」を一回だけ適用
+    for unit in allies + enemies:
+        if not unit.alive():
+            continue
 
+        actor_allies = allies if unit.side == "ally" else enemies
+        actor_enemies = enemies if unit.side == "ally" else allies
+
+        for sk in [unit.unique_skill] + unit.inherited:
+            if sk is None:
+                continue
+            raw = sk.raw or ""
+
+            # --- Passive: 連撃 / 武勇+X（成田固有想定）
+            if sk.kind == "passive":
+                if "連撃" in raw:
+                    unit.statuses["double_attack"] = {"turns": 999999}
+                m = re.search(r"武勇が\s*(\d+)\s*増加", raw)
+                if m and "bonus_wu" not in unit.statuses:
+                    unit.wu += int(m.group(1))
+                    unit.statuses["bonus_wu"] = {"turns": 999999}
+
+            # --- Command: 封撃付与（気炎万丈想定）
+            if (sk.name == "気炎万丈") or ("封撃" in raw and "通常攻撃不可" in raw):
+                targets_mode = detect_targets(raw)
+                targets = _choose_target(unit, actor_allies, actor_enemies, targets_mode, rng)
+                for t in targets:
+                    t.statuses["seal_attack"] = {"turns": 3, "p": 0.70, "decay": 0.14}
+
+                if targets:
+                    names = ", ".join(t.name for t in targets)
+                    logs.append(LogRow(0, 0, unit.side, unit.name, "skill", sk.name, f"開幕効果: 封撃付与 → {names}", actor_hp=unit.soldiers))
 def _try_cast_skill(
     unit: Unit,
     skill: Skill,
