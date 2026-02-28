@@ -521,21 +521,23 @@ def simulate_battle(
                 _tick_statuses(actor)
                 continue
 
-            # Otherwise normal attack
-            # disarm prevents normal attack
-            if "disarm" in actor.statuses:
-                logs.append(
-                    LogRow(turn, idx, actor.side, actor.name, "fail", "通常攻撃不可", "封撃", actor_hp=actor.soldiers)
-                )
-                _tick_statuses(actor)
-                continue
+# Otherwise normal attack
+# disarm prevents normal attack
+if "disarm" in actor.statuses:
+    logs.append(
+        LogRow(turn, idx, actor.side, actor.name, "fail", "通常攻撃不可", "封撃", actor_hp=actor.soldiers)
+    )
+    _tick_statuses(actor)
+    continue
 
-            targets = [u for u in actor_enemies if u.alive()]
-            if not targets:
-                break
-            target = rng.choice(targets) if confused else targets[0]  # default hit front/first alive
+targets = [u for u in actor_enemies if u.alive()]
+if not targets:
+    break
+
+target = rng.choice(targets) if confused else targets[0]
 matchup = _matchup(actor, target)
 
+# ★ここ：連撃なら2回、通常は1回
 hits = 2 if "double_attack" in actor.statuses else 1
 
 for h in range(hits):
@@ -546,7 +548,6 @@ for h in range(hits):
     target.soldiers = max(0, target.soldiers - dmg)
 
     atk_name = "通常攻撃" if hits == 1 else f"通常攻撃({h+1}/{hits})"
-
     logs.append(
         LogRow(
             turn,
