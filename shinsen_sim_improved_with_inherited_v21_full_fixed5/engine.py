@@ -336,6 +336,10 @@ def _apply_opening_effects(allies: List[Unit], enemies: List[Unit], rng: random.
         for sk in [unit.unique_skill] + unit.inherited:
             if sk is None:
                 continue
+            if sk.kind == "passive":
+                continue
+            if sk.name == "気炎万丈":
+                continue
             raw = sk.raw or ""
 
             # --- Passive: 連撃 / 武勇+X（成田固有想定）
