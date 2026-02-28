@@ -340,34 +340,38 @@ def _try_cast_skill(
     if rng.random() > prob:
         return False, "不発", []
 
-    raw = skill.raw or ""
+       raw = skill.raw or ""
     dmg_type = detect_damage_type(raw)
     targets_mode = detect_targets(raw)
     rate = parse_first_rate(raw, level=skill.level, awaken=skill.awaken)
 
-    # ---- Passive/Command special effects (best-effort) ----
-# Passive: double attack (連撃) and stat bonus (武勇+X)
-if raw:
-    # 連撃（通常攻撃2回）
-    if "連撃" in raw:
-        # 永続扱い（turnsを大きくしておく）
-        unit.statuses.setdefault("double_attack", {"turns": 999999})
+    # ---- Passive special effects (best-effort) ----
+    # ※受動は「行動を消費しない」で1回だけ適用したいので、ここで適用して False を返す
+    if raw and (skill.kind == "passive" or "受動" in raw):
+        applied_key = f"passive_applied:{skill.name}"
+        if applied_key not in unit.statuses:
+            # 連撃（通常攻撃2回）
+            if "連撃" in raw:
+                unit.statuses["double_attack"] = {"turns": 999999}
 
-    # 武勇がXX増加（重複加算しないよう一回だけ）
-    m = re.search(r"武勇が\s*(\d+)\s*増加", raw)
-    if m:
-        if "bonus_wu" not in unit.statuses:
-            unit.wu += int(m.group(1))
-            unit.statuses["bonus_wu"] = {"turns": 999999}
-                # ---- Special: 封撃（通常攻撃不可）付与系 ----
+            # 武勇がXX増加（1回だけ）
+            m = re.search(r"武勇が\s*(\d+)\s*増加", raw)
+            if m:
+                unit.wu += int(m.group(1))
+
+            unit.statuses[applied_key] = {"turns": 999999}
+
+        # 受動は「発動ログ」も「行動消費」もしない想定 → Falseで次の戦法/通常攻撃へ
+        return False, "PASSIVE_APPLIED", []
+
+    # ---- Special: 封撃（通常攻撃不可）付与系 ----
     # Example: 気炎万丈 - up to turn3, p starts 70% and decays 14% each turn
     if "封撃" in raw and ("通常攻撃不可" in raw or "通常攻撃" in raw):
         targets = _choose_target(unit, allies, enemies, targets_mode, rng)
-        # duration: treat as 3 turns (best-effort)
-        # probability starts 0.70 and decays by 0.14 each status tick
         for t in targets:
             t.statuses["seal_attack"] = {"turns": 3, "p": 0.70, "decay": 0.14}
         return True, "封撃付与", [(t.name, 0, t.soldiers) for t in targets]
+        
     # Unknown skill: cast but no effect
     if not raw or (dmg_type is None and "回復" not in raw and "回復率" not in raw and rate is None):
         return True, "発動（効果未登録）", []
