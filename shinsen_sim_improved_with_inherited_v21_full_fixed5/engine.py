@@ -112,7 +112,7 @@ def detect_targets(raw: str) -> str:
     if "自軍単体" in raw or "友軍単体" in raw:
         return "ally_single"
     if "自分" in raw or "自身" in raw:
-        return "self"
+        return "se
     return "enemy_single"
 
 # Status keywords (best-effort)
@@ -139,6 +139,9 @@ STATUS_KEYWORDS = {
     "乱舞": "splash_attack",
     "会心": "crit",
     "奇策": "strat_crit",
+    "封撃": "seal_attack",  # 通常攻撃不可（確率で発生する封撃は別途statusesにpを持たせる）
+    "連撃": "double_attack",  # 1ターン2回 通常攻撃
+}
 }
 
 def detect_statuses(raw: str) -> List[str]:
