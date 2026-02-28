@@ -258,6 +258,12 @@ def _matchup(attacker: Unit, defender: Unit) -> float:
 def _tick_statuses(unit: Unit):
     to_del = []
     for k, v in unit.statuses.items():
+        # seal_attack: decay probability each tick
+        if k == "seal_attack":
+            p = float(v.get("p", 0.70))
+            decay = float(v.get("decay", 0.14))
+            v["p"] = max(0.0, p - decay)
+
         v["turns"] -= 1
         if v["turns"] <= 0:
             to_del.append(k)
