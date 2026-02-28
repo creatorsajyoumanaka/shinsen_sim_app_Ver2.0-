@@ -2,9 +2,9 @@
 """
 Lightweight battle simulator engine for Nobunaga Shinsen-style tactics.
 
-Goals:
-- Never crash on unknown tactics (treat as no-op, still log if it "fires").
-- Best-effort parsing from "raw" text.
+Design goals:
+- Never crash on unknown tactics (treat as no-op, still log).
+- Data-driven skill parsing (best-effort) from the "raw" text found in unique_skills/custom skills.
 - Deterministic when seed is fixed.
 """
 from __future__ import annotations
@@ -15,10 +15,10 @@ import random
 import re
 
 # Damage scaling: divide base damage by this value to keep numbers in a sensible range.
-TROOP_SCALE = 10000
+TROOP_SCALE = 10000  # damage scaling; adjust from app sidebar.
 
 # -----------------------------
-# Parsing helpers
+# Utility: parsing helpers
 # -----------------------------
 
 _ARROW_RE = re.compile(r"(\d+(?:\.\d+)?)\s*%?\s*→\s*(\d+(?:\.\d+)?)\s*%?")
@@ -38,14 +38,14 @@ def extract_max_from_arrow(text: str) -> str:
     return _ARROW_RE.sub(repl, text or "")
 
 def parse_probability_max(raw: str, default: Optional[float] = None) -> Optional[float]:
-    """Parse activation probability percent (max if arrow exists), e.g. '35%→45%' -> 45.0."""
+    """Parse activation probability (max, if arrow exists). Returns percent (0-100)."""
     try:
-        if not raw:
+        if raw is None:
             return default
         m = _PROB_RE.search(raw)
         if not m:
             return default
-        vicinity = raw[m.start(): m.start() + 40]
+        vicinity = raw[m.start(): m.start() + 60]
         am = _ARROW_RE.search(vicinity)
         if am:
             return float(am.group(2))
@@ -53,8 +53,12 @@ def parse_probability_max(raw: str, default: Optional[float] = None) -> Optional
     except Exception:
         return default
 
-def parse_first_rate(raw: str, level: int = 20, awaken: bool = True) -> Optional[float]:
-    """Parse first damage/heal rate. Returns decimal (e.g., 104% -> 1.04)."""
+def parse_first_rate(raw: str, key: str = "ダメージ率", level: int = 20, awaken: bool = True) -> Optional[float]:
+    """
+    Parse first (damage/heal) rate found in raw.
+    If arrow exists near it, interpolate by level (or max if awaken).
+    Returns decimal multiplier, e.g. 104% -> 1.04
+    """
     if not raw:
         return None
     m = _RATE_RE.search(raw)
@@ -84,7 +88,7 @@ def detect_damage_type(raw: str) -> Optional[str]:
     return None
 
 def detect_targets(raw: str) -> str:
-    """enemy_single / enemy_multi / enemy_all / ally_single / ally_multi / ally_all / self"""
+    """Best-effort target detector."""
     if not raw:
         return "enemy_single"
     if "敵軍全体" in raw:
@@ -103,13 +107,14 @@ def detect_targets(raw: str) -> str:
         return "self"
     return "enemy_single"
 
-# Best-effort status keywords (avoid duplicate keys!)
+# Status keywords (best-effort) for ON-HIT apply in damage skills.
+# (Passive/command effects like 連撃 or 気炎万丈 are handled separately.)
 STATUS_KEYWORDS: Dict[str, str] = {
     "威圧": "stun",
     "麻痺": "paralyze",
     "混乱": "confuse",
     "無策": "silence",
-    "封撃": "disarm",     # hard block normal attack
+    "封撃": "disarm",
     "火傷": "burn",
     "水攻め": "flood",
     "潰走": "collapse",
@@ -117,13 +122,44 @@ STATUS_KEYWORDS: Dict[str, str] = {
 }
 
 def detect_statuses(raw: str) -> List[str]:
-    if not raw:
-        return []
     found: List[str] = []
+    if not raw:
+        return found
     for jp, code in STATUS_KEYWORDS.items():
         if jp in raw:
             found.append(code)
     return found
+
+def _parse_kien_params(raw: str) -> Tuple[float, float, int]:
+    """
+    気炎万丈など:
+      毎ターン70%の確率で通常攻撃不可（毎ターン発動確率が14%減少）
+    Returns (p, decay, turns).
+    """
+    p = 0.70
+    decay = 0.14
+    turns = 3
+
+    m = re.search(r"毎ターン\s*(\d+(?:\.\d+)?)\s*%.*通常攻撃不可", raw)
+    if m:
+        try:
+            p = float(m.group(1)) / 100.0
+        except Exception:
+            pass
+    m2 = re.search(r"(\d+(?:\.\d+)?)\s*%.*減少", raw)
+    if m2:
+        try:
+            decay = float(m2.group(1)) / 100.0
+        except Exception:
+            pass
+    # "3ターン目まで" etc.
+    m3 = re.search(r"(\d+)\s*ターン目まで", raw)
+    if m3:
+        try:
+            turns = int(m3.group(1))
+        except Exception:
+            pass
+    return p, decay, turns
 
 # -----------------------------
 # Core data structures
@@ -133,8 +169,8 @@ def detect_statuses(raw: str) -> List[str]:
 class Skill:
     name: str
     raw: str = ""
-    kind: str = "unknown"     # active / charge / command / passive / troop / unknown
-    base_prob: float = 0.0    # percent (0..100)
+    kind: str = "unknown"  # active / charge / command / passive / troop / unknown
+    base_prob: float = 0.0  # percent
     level: int = 20
     awaken: bool = True
 
@@ -161,45 +197,48 @@ class Unit:
     unique_skill: Optional[Skill] = None
     inherited: List[Skill] = field(default_factory=list)
 
-    dmg_bonus: float = 0.0
-    dmg_reduction: float = 0.0
+    # dynamic modifiers
+    dmg_bonus: float = 0.0       # +% as decimal e.g. 0.20
+    dmg_reduction: float = 0.0   # -% as decimal
     strat_bonus: float = 0.0
     phys_bonus: float = 0.0
     heal_bonus: float = 0.0
-
-    # statuses: code -> dict(turns=..., other params...)
-    statuses: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    statuses: Dict[str, Dict[str, Any]] = field(default_factory=dict)  # code -> {turns, ...}
 
     def alive(self) -> bool:
         return self.soldiers > 0
 
 # -----------------------------
-# Formulas
+# Damage / heal formulas
 # -----------------------------
 
 def _base_damage(stat_atk: float, stat_def: float, soldiers_atk: int) -> float:
+    # Base scaling for damage/heal.
     BASE_CONST = 500.0
     return (((stat_atk - stat_def) * 1.4 + (-0.05 / 10000.0 * soldiers_atk) + 0.1 + BASE_CONST) * soldiers_atk) / TROOP_SCALE
 
-def damage_strategy(attacker: Unit, defender: Unit, rate: float, matchup: float, rng: random.Random) -> int:
+def damage_strategy(attacker: Unit, defender: Unit, dmg_rate: float, matchup: float, rng: random.Random) -> int:
     base = _base_damage(attacker.int_, defender.int_, attacker.soldiers)
     mult = (1.0 + attacker.dmg_bonus + attacker.strat_bonus) * (1.0 - defender.dmg_reduction)
     mult *= (1.0 + matchup)
     jitter = rng.uniform(0.95, 1.05)
-    return int(max(0.0, base * mult * rate * jitter))
+    dmg = max(0.0, base * mult * dmg_rate * jitter)
+    return int(dmg)
 
-def damage_physical(attacker: Unit, defender: Unit, rate: float, matchup: float, rng: random.Random) -> int:
+def damage_physical(attacker: Unit, defender: Unit, dmg_rate: float, matchup: float, rng: random.Random) -> int:
     base = _base_damage(attacker.wu, defender.lea, attacker.soldiers)
     mult = (1.0 + attacker.dmg_bonus + attacker.phys_bonus) * (1.0 - defender.dmg_reduction)
     mult *= (1.0 + matchup)
     jitter = rng.uniform(0.95, 1.05)
-    return int(max(0.0, base * mult * rate * jitter))
+    dmg = max(0.0, base * mult * dmg_rate * jitter)
+    return int(dmg)
 
-def heal_amount(healer: Unit, target: Unit, rate: float, rng: random.Random) -> int:
+def heal_amount(healer: Unit, target: Unit, heal_rate: float, rng: random.Random) -> int:
     base = max(0.0, _base_damage(healer.int_, 0, healer.soldiers) * 0.6)
     mult = (1.0 + healer.heal_bonus)
     jitter = rng.uniform(0.95, 1.05)
-    return int(max(0.0, base * mult * rate * jitter))
+    heal = max(0.0, base * mult * heal_rate * jitter)
+    return int(heal)
 
 # -----------------------------
 # Battle simulation
@@ -211,36 +250,52 @@ class LogRow:
     order: int
     side: str
     unit: str
-    action_type: str      # "normal" / "skill" / "fail"
+    action_type: str  # "normal" "skill" "fail"
     action_name: str
     detail: str
     actor_hp: int
     target_hp: Optional[int] = None
 
 def _matchup(attacker: Unit, defender: Unit) -> float:
+    # Placeholder: without explicit troop types, keep neutral (0.0).
     return 0.0
 
-def _tick_statuses(unit: Unit) -> None:
-    """Tick once per turn (NOT per action)."""
+def _tick_statuses_once_per_turn(unit: Unit):
+    """Decrement status durations ONCE per turn (end of turn)."""
     to_del: List[str] = []
-    for k, v in unit.statuses.items():
+    for k, v in list(unit.statuses.items()):
+        # seal_attack: decay probability each turn before decrementing
         if k == "seal_attack":
             p = float(v.get("p", 0.70))
             decay = float(v.get("decay", 0.14))
             v["p"] = max(0.0, p - decay)
 
-        v["turns"] = int(v.get("turns", 0)) - 1
-        if v["turns"] <= 0:
-            to_del.append(k)
-
+        if "turns" in v:
+            v["turns"] -= 1
+            if v["turns"] <= 0:
+                to_del.append(k)
     for k in to_del:
         unit.statuses.pop(k, None)
+
+def _apply_dot(unit: Unit, code: str, attacker: Optional[Unit], rng: random.Random) -> Optional[int]:
+    st = unit.statuses.get(code)
+    if not st or not attacker:
+        return None
+    rate = float(st.get("rate", 0.07))
+    dtype = st.get("dtype", "strategy")
+    matchup = 0.0
+    if dtype == "physical":
+        dmg = damage_physical(attacker, unit, rate, matchup, rng)
+    else:
+        dmg = damage_strategy(attacker, unit, rate, matchup, rng)
+    unit.soldiers = max(0, unit.soldiers - dmg)
+    return dmg
 
 def _can_act(unit: Unit, rng: random.Random) -> Tuple[bool, str]:
     if "stun" in unit.statuses:
         return False, "威圧（行動不能）"
     if "paralyze" in unit.statuses:
-        p = float(unit.statuses["paralyze"].get("p", 0.30))
+        p = unit.statuses["paralyze"].get("p", 0.30)
         if rng.random() < p:
             return False, "麻痺（行動不能）"
     return True, ""
@@ -255,51 +310,28 @@ def _choose_target(attacker: Unit, allies: List[Unit], enemies: List[Unit], targ
         rng.shuffle(alive_enemies)
         return alive_enemies[:2] if len(alive_enemies) >= 2 else alive_enemies
     if target_mode == "enemy_single":
-        return [rng.choice(alive_enemies)] if alive_enemies else []
-
+        if not alive_enemies:
+            return []
+        return [rng.choice(alive_enemies)]
     if target_mode == "ally_all":
         return alive_allies[:]
     if target_mode == "ally_multi":
         rng.shuffle(alive_allies)
         return alive_allies[:2] if len(alive_allies) >= 2 else alive_allies
     if target_mode == "ally_single":
-        return [min(alive_allies, key=lambda u: u.soldiers)] if alive_allies else []
-
+        if not alive_allies:
+            return []
+        return [min(alive_allies, key=lambda u: u.soldiers)]
     if target_mode == "self":
         return [attacker]
     return []
 
-def _apply_passive(unit: Unit, raw: str) -> List[str]:
-    """Apply passive effects and return notes."""
-    notes: List[str] = []
-    if "連撃" in raw:
-        if "double_attack" not in unit.statuses:
-            unit.statuses["double_attack"] = {"turns": 999999}
-            notes.append("連撃付与")
-    m = re.search(r"武勇が\s*(\d+)\s*増加", raw)
-    if m and "bonus_wu" not in unit.statuses:
-        inc = int(m.group(1))
-        unit.wu += inc
-        unit.statuses["bonus_wu"] = {"turns": 999999, "amount": inc}
-        notes.append(f"武勇+{inc}")
-    return notes
+def _apply_opening_effects(allies: List[Unit], enemies: List[Unit], rng: random.Random, logs: List[LogRow]):
+    """Apply opening-only effects for passive/command skills (best-effort).
 
-def _apply_command_seal_attack(
-    caster: Unit,
-    raw: str,
-    allies: List[Unit],
-    enemies: List[Unit],
-    rng: random.Random,
-) -> List[Unit]:
-    """気炎万丈想定: 敵軍複数(2名)に seal_attack を3ターン付与（毎ターン発動率減衰）。"""
-    targets_mode = detect_targets(raw)
-    targets = _choose_target(caster, allies, enemies, targets_mode, rng)
-    for t in targets:
-        t.statuses["seal_attack"] = {"turns": 3, "p": 0.70, "decay": 0.14}
-    return targets
-
-def _apply_opening_effects(allies: List[Unit], enemies: List[Unit], rng: random.Random, logs: List[LogRow]) -> None:
-    """Battle start: apply passive/command effects once (turn=0)."""
+    - Passive: 連撃（通常攻撃2回）, 武勇+X
+    - Command: 気炎万丈系の 封撃（通常攻撃不可, 確率+減衰）
+    """
     for unit in allies + enemies:
         if not unit.alive():
             continue
@@ -312,25 +344,58 @@ def _apply_opening_effects(allies: List[Unit], enemies: List[Unit], rng: random.
                 continue
             raw = sk.raw or ""
 
-            # passive
-            if sk.kind == "passive" or "受動" in raw:
-                notes = _apply_passive(unit, raw)
-                if notes:
-                    logs.append(LogRow(0, 0, unit.side, unit.name, "skill", sk.name, f"開幕AUTO（受動）: {', '.join(notes)}", actor_hp=unit.soldiers))
-                continue
+            # --- Passive: 連撃 / 武勇+X（成田固有など想定） ---
+            if sk.kind == "passive":
+                applied = []
+                if "連撃" in raw:
+                    unit.statuses.setdefault("double_attack", {"turns": 999999})
+                    applied.append("連撃")
+                m = re.search(r"武勇が\s*(\d+)\s*増加", raw)
+                if m and "bonus_wu" not in unit.statuses:
+                    unit.wu += int(m.group(1))
+                    unit.statuses["bonus_wu"] = {"turns": 999999}
+                    applied.append(f"武勇+{m.group(1)}")
 
-            # command: 封撃（通常攻撃不可）
-            if (sk.kind == "command" or "指揮" in raw) and ("封撃" in raw and "通常攻撃不可" in raw):
-                if "seal_attack_applied" in unit.statuses:
-                    continue
-                targets = _apply_command_seal_attack(unit, raw, actor_allies, actor_enemies, rng)
-                unit.statuses["seal_attack_applied"] = {"turns": 999999}
+                if applied:
+                    logs.append(
+                        LogRow(
+                            0,
+                            0,
+                            unit.side,
+                            unit.name,
+                            "skill",
+                            sk.name,
+                            "開幕効果: " + " / ".join(applied),
+                            actor_hp=unit.soldiers,
+                        )
+                    )
+                continue  # passiveはここで終わり
+
+            # --- Command: 封撃付与（気炎万丈想定） ---
+            if (sk.kind == "command") and ("封撃" in raw) and ("通常攻撃不可" in raw):
+                targets_mode = detect_targets(raw)
+                targets = _choose_target(unit, actor_allies, actor_enemies, targets_mode, rng)
+
+                p0, decay = _parse_kien_params(raw)
+                for t in targets:
+                    t.statuses["seal_attack"] = {"turns": 3, "p": p0, "decay": decay}
+
                 if targets:
                     names = ", ".join(t.name for t in targets)
-                    logs.append(LogRow(0, 0, unit.side, unit.name, "skill", sk.name, f"開幕AUTO（指揮）: 封撃付与 → {names}", actor_hp=unit.soldiers))
-                continue
+                    logs.append(
+                        LogRow(
+                            0,
+                            0,
+                            unit.side,
+                            unit.name,
+                            "skill",
+                            sk.name,
+                            f"開幕効果: 封撃付与 → {names}（{int(p0*100)}%/減衰{int(decay*100)}%）",
+                            actor_hp=unit.soldiers,
+                        )
+                    )
 
-def _try_skill(
+def _try_cast_skill(
     unit: Unit,
     skill: Skill,
     allies: List[Unit],
@@ -338,42 +403,27 @@ def _try_skill(
     rng: random.Random,
 ) -> Tuple[bool, str, List[Tuple[str, int, int]]]:
     """
-    Returns (consumes_action, detail, results)
-      - consumes_action=False for passive/command auto effects (so unit can still act).
-      - results: (target_name, delta(+heal/-dmg), remaining)
+    Returns (casted, detail, list of (target_name, delta_soldiers(neg for dmg, pos for heal))).
     """
-    raw = skill.raw or ""
-
-    # passive / command effects are already applied at opening, but keep guard for safety.
-    if skill.kind == "passive" or "受動" in raw:
-        _apply_passive(unit, raw)
-        return False, "AUTO（受動）", []
-
-    if (skill.kind == "command" or "指揮" in raw) and ("封撃" in raw and "通常攻撃不可" in raw):
-        if "seal_attack_applied" not in unit.statuses:
-            targets = _apply_command_seal_attack(unit, raw, allies, enemies, rng)
-            unit.statuses["seal_attack_applied"] = {"turns": 999999}
-            return False, "AUTO（指揮）: 封撃付与", [(t.name, 0, t.soldiers) for t in targets]
-        return False, "AUTO（指揮）: 封撃（既適用）", []
-
-    # active/charge/unknown: proc check
-    prob = float(skill.base_prob) / 100.0 if skill.base_prob else 0.0
-    if prob <= 0.0:
+    prob = skill.base_prob / 100.0
+    if prob <= 0:
         return False, "発動率0%（未設定）", []
     if rng.random() > prob:
-        return True, "不発", []
+        return False, "不発", []
 
+    raw = skill.raw or ""
     dmg_type = detect_damage_type(raw)
     targets_mode = detect_targets(raw)
     rate = parse_first_rate(raw, level=skill.level, awaken=skill.awaken)
 
+    # Unknown skill: cast but no effect
     if not raw or (dmg_type is None and "回復" not in raw and "回復率" not in raw and rate is None):
         return True, "発動（効果未登録）", []
 
     targets = _choose_target(unit, allies, enemies, targets_mode, rng)
     results: List[Tuple[str, int, int]] = []
 
-    # heal
+    # Heal skill
     if "回復" in raw or "回復率" in raw:
         if rate is None:
             rate = 1.0
@@ -381,9 +431,9 @@ def _try_skill(
             h = heal_amount(unit, t, rate, rng)
             t.soldiers = min(t.max_soldiers, t.soldiers + h)
             results.append((t.name, +h, t.soldiers))
-        return True, f"回復 {int(rate * 100)}%", results
+        return True, f"回復 {int(rate*100)}%", results
 
-    # damage
+    # Damage skill
     if rate is None:
         rate = 1.0
     for t in targets:
@@ -392,19 +442,22 @@ def _try_skill(
             d = damage_strategy(unit, t, rate, matchup, rng)
         else:
             d = damage_physical(unit, t, rate, matchup, rng)
+
         t.soldiers = max(0, t.soldiers - d)
         results.append((t.name, -d, t.soldiers))
 
+        # status apply (best-effort)
         sts = detect_statuses(raw)
-        for code in sts:
-            if code in ("burn", "flood", "collapse", "depress"):
-                t.statuses[code] = {"turns": 2, "rate": 0.07, "dtype": "strategy", "source": unit.name}
-                break
-            if code in ("stun", "confuse", "silence", "disarm", "paralyze"):
-                t.statuses[code] = {"turns": 1}
-                break
+        if sts:
+            for code in sts:
+                if code in ("burn", "flood", "collapse", "depress"):
+                    t.statuses[code] = {"turns": 2, "rate": 0.07, "dtype": "strategy", "source": unit.name}
+                    break
+                if code in ("stun", "confuse", "silence", "disarm", "paralyze"):
+                    t.statuses[code] = {"turns": 1}
+                    break
 
-    return True, f"ダメージ {int(rate * 100)}%", results
+    return True, f"ダメージ {int(rate*100)}%", results
 
 def simulate_battle(
     allies: List[Unit],
@@ -415,6 +468,7 @@ def simulate_battle(
     rng = random.Random(seed)
     logs: List[LogRow] = []
 
+    # Apply opening passive/command effects
     _apply_opening_effects(allies, enemies, rng, logs)
 
     def get_unit_by_name(name: str) -> Optional[Unit]:
@@ -430,89 +484,97 @@ def simulate_battle(
                 continue
             for code in ("burn", "flood", "collapse", "depress"):
                 if code in u.statuses:
-                    st = u.statuses.get(code, {})
-                    src = get_unit_by_name(st.get("source", ""))
-                    if not src:
-                        continue
-                    rate = float(st.get("rate", 0.07))
-                    dtype = st.get("dtype", "strategy")
-                    if dtype == "physical":
-                        dmg = damage_physical(src, u, rate, 0.0, rng)
-                    else:
-                        dmg = damage_strategy(src, u, rate, 0.0, rng)
-                    u.soldiers = max(0, u.soldiers - dmg)
-                    logs.append(
-                        LogRow(
-                            turn, 0, u.side, u.name, "skill",
-                            f"{code.upper()}(DOT)", f"継続ダメージ {dmg}",
-                            actor_hp=u.soldiers, target_hp=u.soldiers
+                    src = get_unit_by_name(u.statuses[code].get("source", ""))
+                    dmg = _apply_dot(u, code, src, rng)
+                    if dmg:
+                        logs.append(
+                            LogRow(
+                                turn,
+                                0,
+                                u.side,
+                                u.name,
+                                "skill",
+                                f"{code.upper()}(DOT)",
+                                f"継続ダメージ {dmg}",
+                                actor_hp=u.soldiers,
+                                target_hp=u.soldiers,
+                            )
                         )
-                    )
 
-        # action order
+        # Determine action order
         living = [u for u in allies + enemies if u.alive()]
         rng.shuffle(living)
         living.sort(key=lambda u: u.spd, reverse=True)
 
-        for order, actor in enumerate(living, start=1):
+        # Execute actions
+        for idx, actor in enumerate(living, start=1):
             if not actor.alive():
                 continue
+
+            # End early if one side wiped
             if not any(u.alive() for u in allies) or not any(u.alive() for u in enemies):
                 break
 
             can_act, reason = _can_act(actor, rng)
             if not can_act:
-                logs.append(LogRow(turn, order, actor.side, actor.name, "fail", "行動不能", reason, actor_hp=actor.soldiers))
+                logs.append(LogRow(turn, idx, actor.side, actor.name, "fail", "行動不能", reason, actor_hp=actor.soldiers))
                 continue
 
             actor_allies = allies if actor.side == "ally" else enemies
             actor_enemies = enemies if actor.side == "ally" else allies
             confused = "confuse" in actor.statuses
 
-            # Try skills
-            consumed_action = False
+            # Try skills (unique then inherited)
+            casted = False
             for sk in [actor.unique_skill] + actor.inherited:
                 if sk is None:
                     continue
-                if "silence" in actor.statuses and sk.kind in ("active", "charge"):
+
+                # passive/command are handled at opening (avoid consuming action)
+                if (sk.kind or "").lower() in ("passive", "command"):
                     continue
 
-                consumes, detail, results = _try_skill(actor, sk, actor_allies, actor_enemies, rng)
-
-                # AUTO effects: ignore (already applied)
-                if detail.startswith("AUTO"):
+                # silence blocks active/charge skills best-effort
+                if "silence" in actor.statuses and (sk.kind or "").lower() in ("active", "charge"):
                     continue
 
-                if consumes:
-                    if detail == "不発":
-                        continue  # try next skill
-                    consumed_action = True
-                    res_txt = "—"
+                ok, detail, results = _try_cast_skill(actor, sk, actor_allies, actor_enemies, rng)
+                if ok:
+                    casted = True
                     if results:
-                        res_txt = ", ".join([f"{t}{'+' if d > 0 else ''}{d}（残兵 {remain}）" for t, d, remain in results])
+                        res_txt = ", ".join([f"{t}{'+' if d>0 else ''}{d}（残兵 {remain}）" for t, d, remain in results])
+                    else:
+                        res_txt = "—"
                     logs.append(
                         LogRow(
-                            turn, order, actor.side, actor.name, "skill",
-                            sk.name, f"{detail} / {res_txt}",
+                            turn,
+                            idx,
+                            actor.side,
+                            actor.name,
+                            "skill",
+                            sk.name,
+                            f"{detail} / {res_txt}",
                             actor_hp=actor.soldiers,
-                            target_hp=results[0][2] if len(results) == 1 else None
+                            target_hp=results[0][2] if len(results) == 1 else None,
                         )
                     )
                     break
 
-            if consumed_action:
+            if casted:
                 continue
 
-            # Normal attack
+            # Otherwise normal attack
+            # disarm prevents normal attack (always)
             if "disarm" in actor.statuses:
-                logs.append(LogRow(turn, order, actor.side, actor.name, "fail", "通常攻撃不可", "封撃", actor_hp=actor.soldiers))
+                logs.append(LogRow(turn, idx, actor.side, actor.name, "fail", "通常攻撃不可", "封撃", actor_hp=actor.soldiers))
                 continue
 
+            # seal_attack: chance-based normal attack block（気炎万丈）
             if "seal_attack" in actor.statuses:
-                st = actor.statuses["seal_attack"]
-                p = float(st.get("p", 0.70))
+                stt = actor.statuses["seal_attack"]
+                p = float(stt.get("p", 0.70))
                 if rng.random() < p:
-                    logs.append(LogRow(turn, order, actor.side, actor.name, "fail", "通常攻撃不可", f"封撃（{int(p * 100)}%）", actor_hp=actor.soldiers))
+                    logs.append(LogRow(turn, idx, actor.side, actor.name, "fail", "通常攻撃不可", f"封撃（{int(p*100)}%）", actor_hp=actor.soldiers))
                     continue
 
             targets = [u for u in actor_enemies if u.alive()]
@@ -529,22 +591,29 @@ def simulate_battle(
                         break
                     target = rng.choice(targets) if confused else targets[0]
 
-                dmg = damage_physical(actor, target, 1.0, _matchup(actor, target), rng)
+                matchup = _matchup(actor, target)
+                dmg = damage_physical(actor, target, 1.0, matchup, rng)
                 target.soldiers = max(0, target.soldiers - dmg)
 
-                atk_name = "通常攻撃" if hits == 1 else f"通常攻撃({h + 1}/{hits})"
+                atk_name = "通常攻撃" if hits == 1 else f"通常攻撃({h+1}/{hits})"
                 logs.append(
                     LogRow(
-                        turn, order, actor.side, actor.name, "normal",
-                        atk_name, f"{target.name} -{dmg}（残兵 {target.soldiers}）",
-                        actor_hp=actor.soldiers, target_hp=target.soldiers
+                        turn,
+                        idx,
+                        actor.side,
+                        actor.name,
+                        "normal",
+                        atk_name,
+                        f"{target.name} -{dmg}（残兵 {target.soldiers}）",
+                        actor_hp=actor.soldiers,
+                        target_hp=target.soldiers,
                     )
                 )
 
-        # Tick statuses once per turn
+        # End-of-turn status tick (once per turn)
         for u in allies + enemies:
-            if u.alive() and u.statuses:
-                _tick_statuses(u)
+            if u.alive():
+                _tick_statuses_once_per_turn(u)
 
         if not any(u.alive() for u in allies) or not any(u.alive() for u in enemies):
             break
