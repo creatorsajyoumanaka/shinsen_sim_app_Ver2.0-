@@ -562,8 +562,8 @@ for h in range(hits):
 
 _tick_statuses(actor)
 
-        if not any(u.alive() for u in allies) or not any(u.alive() for u in enemies):
-            break
+if not any(u.alive() for u in allies) or not any(u.alive() for u in enemies):
+    break
 
     summary = {
         "ally_alive": sum(1 for u in allies if u.alive()),
