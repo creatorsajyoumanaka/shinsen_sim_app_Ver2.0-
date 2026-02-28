@@ -355,6 +355,15 @@ if raw:
         if "bonus_wu" not in unit.statuses:
             unit.wu += int(m.group(1))
             unit.statuses["bonus_wu"] = {"turns": 999999}
+                # ---- Special: 封撃（通常攻撃不可）付与系 ----
+    # Example: 気炎万丈 - up to turn3, p starts 70% and decays 14% each turn
+    if "封撃" in raw and ("通常攻撃不可" in raw or "通常攻撃" in raw):
+        targets = _choose_target(unit, allies, enemies, targets_mode, rng)
+        # duration: treat as 3 turns (best-effort)
+        # probability starts 0.70 and decays by 0.14 each status tick
+        for t in targets:
+            t.statuses["seal_attack"] = {"turns": 3, "p": 0.70, "decay": 0.14}
+        return True, "封撃付与", [(t.name, 0, t.soldiers) for t in targets]
     # Unknown skill: cast but no effect
     if not raw or (dmg_type is None and "回復" not in raw and "回復率" not in raw and rate is None):
         return True, "発動（効果未登録）", []
