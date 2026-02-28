@@ -520,21 +520,32 @@ def simulate_battle(
                 break
             target = rng.choice(targets) if confused else targets[0]  # default hit front/first alive
             matchup = _matchup(actor, target)
-            dmg = damage_physical(actor, target, 1.0, matchup, rng)
-            target.soldiers = max(0, target.soldiers - dmg)
-            logs.append(
-                LogRow(
-                    turn,
-                    idx,
-                    actor.side,
-                    actor.name,
-                    "normal",
-                    "通常攻撃",
-                    f"{target.name} -{dmg}（残兵 {target.soldiers}）",
-                    actor_hp=actor.soldiers,
-                    target_hp=target.soldiers,
-                )
-            )
+
+# ★ここ：連撃なら2回、通常は1回
+hits = 2 if "double_attack" in actor.statuses else 1
+
+for h in range(hits):
+    if not target.alive():
+        break  # 1発目で倒したら終了
+
+    dmg = damage_physical(actor, target, 1.0, matchup, rng)
+    target.soldiers = max(0, target.soldiers - dmg)
+
+    atk_name = "通常攻撃" if hits == 1 else f"通常攻撃({h+1}/{hits})"
+
+    logs.append(
+        LogRow(
+            turn,
+            idx,
+            actor.side,
+            actor.name,
+            "normal",
+            atk_name,
+            f"{target.name} -{dmg}（残兵 {target.soldiers}）",
+            actor_hp=actor.soldiers,
+            target_hp=target.soldiers,
+        )
+    )
 
             _tick_statuses(actor)
 
