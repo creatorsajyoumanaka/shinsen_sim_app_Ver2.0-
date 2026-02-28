@@ -112,7 +112,7 @@ def detect_targets(raw: str) -> str:
     if "自軍単体" in raw or "友軍単体" in raw:
         return "ally_single"
     if "自分" in raw or "自身" in raw:
-        return "se
+    return "self"
     return "enemy_single"
 
 # Status keywords (best-effort)
