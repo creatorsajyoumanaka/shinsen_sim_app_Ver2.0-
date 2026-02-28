@@ -2,10 +2,10 @@
 """
 Lightweight battle simulator engine for Nobunaga Shinsen-style tactics.
 
-Design goals:
-- Never crash on unknown tactics (treat as no-op, still log).
-- Best-effort parsing from the "raw" text found in unique_skills/custom skills.
-- Deterministic when seed is fixed.
+Goals:
+- Never crash on unknown skills (no-op, still log).
+- Best-effort parsing from "raw".
+- Deterministic with seed.
 """
 from __future__ import annotations
 
@@ -14,9 +14,11 @@ from typing import Dict, List, Optional, Tuple, Any
 import random
 import re
 
-# Damage scaling: divide base damage by this value to keep numbers in a sensible range.
-TROOP_SCALE = 10000
-
+# -----------------------------
+# Tunables
+# -----------------------------
+TROOP_SCALE = 10000          # damage scaling
+HEAL_BASE_FACTOR = 0.60      # heal strength (0.60 is current default)
 
 # -----------------------------
 # Utility: parsing helpers
@@ -25,30 +27,27 @@ _ARROW_RE = re.compile(r"(\d+(?:\.\d+)?)\s*%?\s*→\s*(\d+(?:\.\d+)?)\s*%?")
 _RATE_RE = re.compile(r"(?:ダメージ率|回復率)\s*(\d+(?:\.\d+)?)\s*%")
 _PROB_RE = re.compile(r"(?:発動確率)\s*(\d+(?:\.\d+)?)\s*%")
 
-
 def _interp(min_v: float, max_v: float, level: int) -> float:
-    """Linear interpolation across levels 1..20."""
     level = max(1, min(20, int(level)))
     t = (level - 1) / 19.0
     return min_v + (max_v - min_v) * t
 
-
 def extract_max_from_arrow(text: str) -> str:
-    """Replace 'a→b' with 'b' for display purposes."""
-    def repl(m):
+    def repl(m: re.Match) -> str:
         return m.group(2)
-    return _ARROW_RE.sub(repl, text)
-
+    return _ARROW_RE.sub(repl, text or "")
 
 def parse_probability_max(raw: str, default: Optional[float] = None) -> Optional[float]:
-    """Parse activation probability in percent (max if arrow exists)."""
+    """
+    Returns probability in percent (e.g. 35.0). If not found -> default.
+    """
     try:
-        if raw is None:
+        if not raw:
             return default
         m = _PROB_RE.search(raw)
         if not m:
             return default
-        vicinity = raw[m.start(): m.start() + 60]
+        vicinity = raw[m.start(): m.start() + 40]
         am = _ARROW_RE.search(vicinity)
         if am:
             return float(am.group(2))
@@ -56,17 +55,17 @@ def parse_probability_max(raw: str, default: Optional[float] = None) -> Optional
     except Exception:
         return default
 
-
 def parse_first_rate(raw: str, level: int = 20, awaken: bool = True) -> Optional[float]:
     """
-    Parse first (damage/heal) rate found in raw.
-    Returns decimal multiplier, e.g. 142% -> 1.42
+    Returns decimal multiplier (e.g. 104% -> 1.04)
     """
-    m = _RATE_RE.search(raw or "")
+    if not raw:
+        return None
+    m = _RATE_RE.search(raw)
     if not m:
         return None
-    start = max(0, m.start() - 30)
-    end = min(len(raw), m.end() + 30)
+    start = max(0, m.start() - 20)
+    end = min(len(raw), m.end() + 20)
     vicinity = raw[start:end]
     am = _ARROW_RE.search(vicinity)
     if am:
@@ -77,9 +76,9 @@ def parse_first_rate(raw: str, level: int = 20, awaken: bool = True) -> Optional
         return v / 100.0
     return float(m.group(1)) / 100.0
 
-
 def detect_damage_type(raw: str) -> Optional[str]:
-    raw = raw or ""
+    if not raw:
+        return None
     if "計略ダメージ" in raw:
         return "strategy"
     if "兵刃ダメージ" in raw:
@@ -88,9 +87,9 @@ def detect_damage_type(raw: str) -> Optional[str]:
         return "hybrid"
     return None
 
-
 def detect_targets(raw: str) -> str:
-    raw = raw or ""
+    if not raw:
+        return "enemy_single"
     if "敵軍全体" in raw:
         return "enemy_all"
     if "敵軍複数" in raw:
@@ -107,29 +106,45 @@ def detect_targets(raw: str) -> str:
         return "self"
     return "enemy_single"
 
-
-# Status keywords (best-effort)  ※必要最低限だけ
+# NOTE:
+# 「封撃」は通常は "disarm"（通常攻撃不可）として扱う。
+# 「気炎万丈」の "封撃(毎ターン70%…)" は別枠で "seal_attack" を使う（重複キー回避）。
 STATUS_KEYWORDS = {
     "威圧": "stun",
     "麻痺": "paralyze",
     "混乱": "confuse",
     "無策": "silence",
-    "封撃": "disarm",   # “封撃(通常攻撃不可)”系が active/skill に混ざってた時の保険（1T扱い）
+    "封撃": "disarm",
     "火傷": "burn",
     "水攻め": "flood",
     "潰走": "collapse",
     "消沈": "depress",
 }
 
-
 def detect_statuses(raw: str) -> List[str]:
-    raw = raw or ""
     found: List[str] = []
+    if not raw:
+        return found
     for jp, code in STATUS_KEYWORDS.items():
         if jp in raw:
             found.append(code)
     return found
 
+def _prob_to_0_1(v: float) -> float:
+    """
+    Accept both:
+      - percent (0..100)
+      - ratio (0..1)
+    """
+    try:
+        x = float(v)
+    except Exception:
+        return 0.0
+    if x <= 0:
+        return 0.0
+    if x <= 1.0:
+        return x
+    return min(1.0, x / 100.0)
 
 # -----------------------------
 # Core data structures
@@ -138,12 +153,11 @@ def detect_statuses(raw: str) -> List[str]:
 class Skill:
     name: str
     raw: str = ""
-    kind: str = "unknown"  # active / charge / command / passive / troop / unknown
-    base_prob: float = 0.0  # percent (or 0..1 also accepted)
+    kind: str = "unknown"   # active / charge / command / passive / troop / unknown
+    base_prob: float = 0.0  # percent or ratio (engine accepts both)
     level: int = 20
     awaken: bool = True
 
-    # dict-like helpers
     def get(self, key, default=None):
         return getattr(self, key, default)
 
@@ -152,7 +166,6 @@ class Skill:
 
     def __setitem__(self, key, value):
         setattr(self, key, value)
-
 
 @dataclass
 class Unit:
@@ -173,11 +186,11 @@ class Unit:
     phys_bonus: float = 0.0
     heal_bonus: float = 0.0
 
-    statuses: Dict[str, Dict[str, Any]] = field(default_factory=dict)  # code -> {turns, ...}
+    # statuses: code -> dict(turns=..., other params...)
+    statuses: Dict[str, Dict[str, Any]] = field(default_factory=dict)
 
     def alive(self) -> bool:
         return self.soldiers > 0
-
 
 # -----------------------------
 # Damage / heal formulas
@@ -186,6 +199,8 @@ def _base_damage(stat_atk: float, stat_def: float, soldiers_atk: int) -> float:
     BASE_CONST = 500.0
     return (((stat_atk - stat_def) * 1.4 + (-0.05 / 10000.0 * soldiers_atk) + 0.1 + BASE_CONST) * soldiers_atk) / TROOP_SCALE
 
+def _matchup(attacker: Unit, defender: Unit) -> float:
+    return 0.0
 
 def damage_strategy(attacker: Unit, defender: Unit, dmg_rate: float, matchup: float, rng: random.Random) -> int:
     base = _base_damage(attacker.int_, defender.int_, attacker.soldiers)
@@ -195,7 +210,6 @@ def damage_strategy(attacker: Unit, defender: Unit, dmg_rate: float, matchup: fl
     dmg = max(0.0, base * mult * dmg_rate * jitter)
     return int(dmg)
 
-
 def damage_physical(attacker: Unit, defender: Unit, dmg_rate: float, matchup: float, rng: random.Random) -> int:
     base = _base_damage(attacker.wu, defender.lea, attacker.soldiers)
     mult = (1.0 + attacker.dmg_bonus + attacker.phys_bonus) * (1.0 - defender.dmg_reduction)
@@ -204,14 +218,12 @@ def damage_physical(attacker: Unit, defender: Unit, dmg_rate: float, matchup: fl
     dmg = max(0.0, base * mult * dmg_rate * jitter)
     return int(dmg)
 
-
 def heal_amount(healer: Unit, target: Unit, heal_rate: float, rng: random.Random) -> int:
-    base = max(0.0, _base_damage(healer.int_, 0, healer.soldiers) * 0.6)
+    base = max(0.0, _base_damage(healer.int_, 0, healer.soldiers) * HEAL_BASE_FACTOR)
     mult = (1.0 + healer.heal_bonus)
     jitter = rng.uniform(0.95, 1.05)
     heal = max(0.0, base * mult * heal_rate * jitter)
     return int(heal)
-
 
 # -----------------------------
 # Battle simulation
@@ -222,25 +234,20 @@ class LogRow:
     order: int
     side: str
     unit: str
-    action_type: str  # "normal" "skill" "fail"
+    action_type: str
     action_name: str
     detail: str
     actor_hp: int
     target_hp: Optional[int] = None
 
-
-def _matchup(attacker: Unit, defender: Unit) -> float:
-    return 0.0
-
-
-def _tick_statuses(unit: Unit):
+def _tick_statuses(unit: Unit) -> None:
     """
-    1回呼ばれるごとに turns を減らす。
-    seal_attack は確率 p を decay だけ減衰させる。
+    1ターン経過処理（ここは「1ターンに1回」しか呼ばない）
     """
     to_del: List[str] = []
     for k, v in unit.statuses.items():
         if k == "seal_attack":
+            # 気炎万丈の封撃：毎ターン p を減衰
             p = float(v.get("p", 0.70))
             decay = float(v.get("decay", 0.14))
             v["p"] = max(0.0, p - decay)
@@ -252,20 +259,19 @@ def _tick_statuses(unit: Unit):
     for k in to_del:
         unit.statuses.pop(k, None)
 
-
 def _apply_dot(unit: Unit, code: str, attacker: Optional[Unit], rng: random.Random) -> Optional[int]:
-    st = unit.statuses.get(code)
-    if not st or not attacker:
+    stt = unit.statuses.get(code)
+    if not stt or not attacker:
         return None
-    rate = float(st.get("rate", 0.07))
-    dtype = st.get("dtype", "strategy")
+    rate = float(stt.get("rate", 0.07))
+    dtype = stt.get("dtype", "strategy")
+    matchup = 0.0
     if dtype == "physical":
-        dmg = damage_physical(attacker, unit, rate, 0.0, rng)
+        dmg = damage_physical(attacker, unit, rate, matchup, rng)
     else:
-        dmg = damage_strategy(attacker, unit, rate, 0.0, rng)
+        dmg = damage_strategy(attacker, unit, rate, matchup, rng)
     unit.soldiers = max(0, unit.soldiers - dmg)
     return dmg
-
 
 def _can_act(unit: Unit, rng: random.Random) -> Tuple[bool, str]:
     if "stun" in unit.statuses:
@@ -275,7 +281,6 @@ def _can_act(unit: Unit, rng: random.Random) -> Tuple[bool, str]:
         if rng.random() < p:
             return False, "麻痺（行動不能）"
     return True, ""
-
 
 def _choose_target(attacker: Unit, allies: List[Unit], enemies: List[Unit], target_mode: str, rng: random.Random) -> List[Unit]:
     alive_enemies = [u for u in enemies if u.alive()]
@@ -305,69 +310,36 @@ def _choose_target(attacker: Unit, allies: List[Unit], enemies: List[Unit], targ
         return [attacker]
     return []
 
-
-def _prob_to_0_1(base_prob: float) -> float:
+def _apply_passive_effects(unit: Unit, skill: Skill) -> None:
     """
-    base_prob が 0..1 の場合も 0..100 の場合も吸収して 0..1 にする
+    受動（パッシブ）を戦闘開始時に適用。
+    成田甲斐の固有：連撃 + 武勇+30 など。
     """
-    try:
-        bp = float(base_prob)
-    except Exception:
-        return 0.0
-    if bp <= 0:
-        return 0.0
-    if bp <= 1.0:
-        return bp
-    return bp / 100.0
+    raw = skill.raw or ""
 
+    # 連撃：通常攻撃2回（永続）
+    if "連撃" in raw:
+        unit.statuses.setdefault("double_attack", {"turns": 999999})
 
-def _apply_prebattle_effects(allies: List[Unit], enemies: List[Unit], rng: random.Random, logs: List[LogRow]):
+    # 武勇がXX増加：1回だけ
+    m = re.search(r"武勇が\s*(\d+)\s*増加", raw)
+    if m and "bonus_wu" not in unit.statuses:
+        unit.wu += int(m.group(1))
+        unit.statuses["bonus_wu"] = {"turns": 999999}
+
+def _apply_kien_manjo(unit: Unit, skill: Skill, allies: List[Unit], enemies: List[Unit], rng: random.Random) -> List[Unit]:
     """
-    受動(passive) と 指揮(command) の “開幕適用系” をここで1回だけ反映する。
-    - 成田固有（受動）: 連撃 / 武勇+X
-    - 気炎万丈（指揮）: 3T 封撃(通常攻撃不可) 確率70%→毎T-14%
+    気炎万丈：～3ターン目まで、敵軍複数(2名)に封撃（通常攻撃不可）を付与。
+    毎ターン70%で通常攻撃不可、毎ターン確率-14%。
     """
-    for unit in allies + enemies:
-        if not unit.alive():
-            continue
+    raw = skill.raw or ""
+    targets_mode = detect_targets(raw)
+    targets = _choose_target(unit, allies, enemies, targets_mode, rng)
 
-        actor_allies = allies if unit.side == "ally" else enemies
-        actor_enemies = enemies if unit.side == "ally" else allies
+    for t in targets:
+        t.statuses["seal_attack"] = {"turns": 3, "p": 0.70, "decay": 0.14}
 
-        for sk in [unit.unique_skill] + unit.inherited:
-            if sk is None:
-                continue
-
-            raw = sk.raw or ""
-
-            # --- Passive: 連撃 + 武勇UP（成田固有など）
-            if sk.kind == "passive" or "受動" in raw:
-                if "連撃" in raw:
-                    unit.statuses.setdefault("double_attack", {"turns": 999999})
-                m = re.search(r"武勇が\s*(\d+)\s*増加", raw)
-                if m and "bonus_wu" not in unit.statuses:
-                    unit.wu += int(m.group(1))
-                    unit.statuses["bonus_wu"] = {"turns": 999999}
-
-            # --- Command: 気炎万丈（封撃付与）
-            if sk.kind == "command" or "指揮" in raw:
-                if sk.name == "気炎万丈" or ("封撃" in raw and "通常攻撃不可" in raw):
-                    targets_mode = detect_targets(raw)
-                    targets = _choose_target(unit, actor_allies, actor_enemies, targets_mode, rng)
-                    for t in targets:
-                        # 3ターン / p=0.70, 毎ターン-0.14
-                        t.statuses["seal_attack"] = {"turns": 3, "p": 0.70, "decay": 0.14}
-                    if targets:
-                        logs.append(
-                            LogRow(
-                                0, 0, unit.side, unit.name,
-                                "skill",
-                                sk.name,
-                                "開幕効果: 封撃付与",
-                                actor_hp=unit.soldiers
-                            )
-                        )
-
+    return targets
 
 def _try_cast_skill(
     unit: Unit,
@@ -377,9 +349,10 @@ def _try_cast_skill(
     rng: random.Random,
 ) -> Tuple[bool, str, List[Tuple[str, int, int]]]:
     """
-    Returns (casted, detail, list of (target_name, delta_soldiers(neg for dmg, pos for heal), remain)).
+    Returns (casted, detail, results).
+    results: list of (target_name, delta(+heal/-dmg), remain)
     """
-    # passive/command は simulate 側で弾く（ここには来ない想定）
+    # passive/command(気炎万丈) は simulate 側で処理（ここには来ない想定）
     p01 = _prob_to_0_1(skill.base_prob)
     if p01 <= 0.0:
         return False, "発動率0%（未設定）", []
@@ -391,7 +364,6 @@ def _try_cast_skill(
     targets_mode = detect_targets(raw)
     rate = parse_first_rate(raw, level=skill.level, awaken=skill.awaken)
 
-    # Unknown: cast but no effect
     if not raw or (dmg_type is None and "回復" not in raw and "回復率" not in raw and rate is None):
         return True, "発動（効果未登録）", []
 
@@ -433,7 +405,6 @@ def _try_cast_skill(
 
     return True, f"ダメージ {int(rate * 100)}%", results
 
-
 def simulate_battle(
     allies: List[Unit],
     enemies: List[Unit],
@@ -443,18 +414,48 @@ def simulate_battle(
     rng = random.Random(seed)
     logs: List[LogRow] = []
 
-    # 開幕: passive/command を反映（成田固有/気炎万丈など）
-    _apply_prebattle_effects(allies, enemies, rng, logs)
-
+    # DOT source lookup
     def get_unit_by_name(name: str) -> Optional[Unit]:
         for u in allies + enemies:
             if u.name == name:
                 return u
         return None
 
-    for turn in range(1, turns + 1):
-        ticked: set[int] = set()
+    # --- Opening effects: passive + 気炎万丈 ---
+    for u in allies + enemies:
+        if not u.alive():
+            continue
 
+        u_allies = allies if u.side == "ally" else enemies
+        u_enemies = enemies if u.side == "ally" else allies
+
+        for sk in [u.unique_skill] + u.inherited:
+            if sk is None:
+                continue
+
+            if sk.kind == "passive":
+                _apply_passive_effects(u, sk)
+
+            # 気炎万丈（指揮）は開幕効果として付与、行動は消費しない
+            if sk.name == "気炎万丈" or (sk.kind == "command" and "封撃" in (sk.raw or "") and "通常攻撃不可" in (sk.raw or "")):
+                targets = _apply_kien_manjo(u, sk, u_allies, u_enemies, rng)
+                if targets:
+                    logs.append(
+                        LogRow(
+                            turn=0,
+                            order=0,
+                            side=u.side,
+                            unit=u.name,
+                            action_type="skill",
+                            action_name=sk.name,
+                            detail="開幕効果: 封撃付与 → " + ", ".join(t.name for t in targets),
+                            actor_hp=u.soldiers,
+                            target_hp=None,
+                        )
+                    )
+
+    # --- Turns ---
+    for turn in range(1, turns + 1):
         # DOT tick at turn start
         for u in allies + enemies:
             if not u.alive():
@@ -466,10 +467,13 @@ def simulate_battle(
                     if dmg:
                         logs.append(
                             LogRow(
-                                turn, 0, u.side, u.name,
-                                "skill",
-                                f"{code.upper()}(DOT)",
-                                f"継続ダメージ {dmg}",
+                                turn=turn,
+                                order=0,
+                                side=u.side,
+                                unit=u.name,
+                                action_type="skill",
+                                action_name=f"{code.upper()}(DOT)",
+                                detail=f"継続ダメージ {dmg}",
                                 actor_hp=u.soldiers,
                                 target_hp=u.soldiers,
                             )
@@ -478,12 +482,12 @@ def simulate_battle(
         # Determine action order
         living = [u for u in allies + enemies if u.alive()]
         rng.shuffle(living)
-        living.sort(key=lambda u: u.spd, reverse=True)
+        living.sort(key=lambda x: x.spd, reverse=True)
 
+        # Execute actions
         for idx, actor in enumerate(living, start=1):
             if not actor.alive():
                 continue
-
             if not any(u.alive() for u in allies) or not any(u.alive() for u in enemies):
                 break
 
@@ -491,35 +495,37 @@ def simulate_battle(
             if not can_act:
                 logs.append(LogRow(turn, idx, actor.side, actor.name, "fail", "行動不能", reason, actor_hp=actor.soldiers))
                 _tick_statuses(actor)
-                ticked.add(id(actor))
                 continue
 
             actor_allies = allies if actor.side == "ally" else enemies
             actor_enemies = enemies if actor.side == "ally" else allies
+
             confused = "confuse" in actor.statuses
 
-            # Try skills (unique then inherited)  ※passive/command はここでは発動させない
+            # Try skills (unique then inherited) - skip passive & 気炎万丈(開幕処理済)
             casted = False
             for sk in [actor.unique_skill] + actor.inherited:
                 if sk is None:
                     continue
-                if sk.kind in ("passive", "command"):
+                if sk.kind == "passive":
                     continue
+                if sk.name == "気炎万丈":
+                    continue
+
                 if "silence" in actor.statuses and sk.kind in ("active", "charge"):
                     continue
 
                 ok, detail, results = _try_cast_skill(actor, sk, actor_allies, actor_enemies, rng)
                 if ok:
                     casted = True
-                    res_txt = "—"
                     if results:
-                        res_txt = ", ".join([f"{t}{'+' if d>0 else ''}{d}（残兵 {remain}）" for t, d, remain in results])
-
+                        res_txt = ", ".join([f"{t}{'+' if d > 0 else ''}{d}（残兵 {remain}）" for t, d, remain in results])
+                    else:
+                        res_txt = "—"
                     logs.append(
                         LogRow(
                             turn, idx, actor.side, actor.name,
-                            "skill",
-                            sk.name,
+                            "skill", sk.name,
                             f"{detail} / {res_txt}",
                             actor_hp=actor.soldiers,
                             target_hp=results[0][2] if len(results) == 1 else None,
@@ -529,25 +535,22 @@ def simulate_battle(
 
             if casted:
                 _tick_statuses(actor)
-                ticked.add(id(actor))
                 continue
 
-            # Normal attack
-            # disarm blocks normal attack (always)
+            # Otherwise normal attack
+            # disarm blocks normal attack
             if "disarm" in actor.statuses:
                 logs.append(LogRow(turn, idx, actor.side, actor.name, "fail", "通常攻撃不可", "封撃", actor_hp=actor.soldiers))
                 _tick_statuses(actor)
-                ticked.add(id(actor))
                 continue
 
-            # seal_attack blocks normal attack by probability (気炎万丈)
+            # seal_attack (気炎万丈): chance-based normal attack block
             if "seal_attack" in actor.statuses:
                 stt = actor.statuses["seal_attack"]
                 p = float(stt.get("p", 0.70))
                 if rng.random() < p:
                     logs.append(LogRow(turn, idx, actor.side, actor.name, "fail", "通常攻撃不可", f"封撃（{int(p*100)}%）", actor_hp=actor.soldiers))
                     _tick_statuses(actor)
-                    ticked.add(id(actor))
                     continue
 
             targets = [u for u in actor_enemies if u.alive()]
@@ -555,6 +558,8 @@ def simulate_battle(
                 break
 
             hits = 2 if "double_attack" in actor.statuses else 1
+
+            # initial target
             target = rng.choice(targets) if confused else targets[0]
 
             for h in range(hits):
@@ -572,8 +577,7 @@ def simulate_battle(
                 logs.append(
                     LogRow(
                         turn, idx, actor.side, actor.name,
-                        "normal",
-                        atk_name,
+                        "normal", atk_name,
                         f"{target.name} -{dmg}（残兵 {target.soldiers}）",
                         actor_hp=actor.soldiers,
                         target_hp=target.soldiers,
@@ -581,12 +585,6 @@ def simulate_battle(
                 )
 
             _tick_statuses(actor)
-            ticked.add(id(actor))
-
-        # tick for units that didn't act (avoid double tick)
-        for u in allies + enemies:
-            if u.alive() and id(u) not in ticked:
-                _tick_statuses(u)
 
         if not any(u.alive() for u in allies) or not any(u.alive() for u in enemies):
             break
