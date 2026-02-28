@@ -327,7 +327,6 @@ st.set_page_config(page_title=APP_TITLE, layout="wide")
 st.title(APP_TITLE)
 
 with st.sidebar:
-    st.error("★SIDEBAR TEST★")
     st.header("データ追加（任意）")
 
     st.markdown("### 編成の保存（このPC/ブラウザ）")
