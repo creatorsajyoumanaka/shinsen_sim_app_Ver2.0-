@@ -458,7 +458,7 @@ def simulate_battle(
 ) -> Tuple[List[LogRow], Dict[str, Any]]:
     rng = random.Random(seed)
     logs: List[LogRow] = []
-
+    _apply_opening_effects(allies, enemies, rng, logs)
     # Build lookup for DOT sources by name
     def get_unit_by_name(name: str) -> Optional[Unit]:
         for u in allies + enemies:
