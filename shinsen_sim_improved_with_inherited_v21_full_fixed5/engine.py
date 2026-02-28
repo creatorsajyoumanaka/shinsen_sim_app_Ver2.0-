@@ -142,7 +142,6 @@ STATUS_KEYWORDS = {
     "封撃": "seal_attack",  # 通常攻撃不可（確率で発生する封撃は別途statusesにpを持たせる）
     "連撃": "double_attack",  # 1ターン2回 通常攻撃
 }
-}
 
 def detect_statuses(raw: str) -> List[str]:
     found = []
