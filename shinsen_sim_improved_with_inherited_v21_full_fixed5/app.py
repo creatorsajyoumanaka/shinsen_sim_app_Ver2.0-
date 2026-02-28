@@ -370,7 +370,7 @@ def _try_cast_skill(
             results.append((t.name, +h, t.soldiers))
         return True, f"回復 {int(rate * 100)}%", results
 
-    # Damage skill
+       # Damage skill
     if rate is None:
         rate = 1.0
 
