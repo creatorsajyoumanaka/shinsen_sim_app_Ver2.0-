@@ -99,16 +99,19 @@ def make_skill_from_raw(name, raw, kind="unknown", default_prob=35.0):
         awaken=True,
     )
 def skill_display(entry):
-raw = entry.get("raw", "") or ""
-prob = entry.get("base_prob", None)
-if raw:
-pmax = parse_probability_max(raw)
-if pmax is not None:
-prob = pmax
-if prob is None:
-prob = "—"
-raw_max = extract_max_from_arrow(raw) if raw else ""
-return prob, raw_max
+    raw = entry.get("raw", "") or ""
+    prob = entry.get("base_prob", None)
+
+    if raw:
+        pmax = parse_probability_max(raw)
+        if pmax is not None:
+            prob = pmax
+
+    if prob is None:
+        prob = "—"
+
+    raw_max = extract_max_from_arrow(raw) if raw else ""
+    return prob, raw_max
 
 # -----------------------------
 # Load data
