@@ -71,10 +71,10 @@ def _build_comp_state() -> dict:
 
 
 def _apply_comp_state(data: dict):
-if not isinstance(data, dict):
-return
-for k, v in data.items():
-st.session_state[k] = v
+    if not isinstance(data, dict):
+        return
+    for k, v in data.items():
+        st.session_state[k] = v
 from engine import Unit, Skill, simulate_battle, extract_max_from_arrow, parse_probability_max
 
 APP_TITLE = "信長真戦シミュレーター（Ver2.0.1）"
