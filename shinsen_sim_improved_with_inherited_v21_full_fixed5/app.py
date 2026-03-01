@@ -87,11 +87,17 @@ INHERITED_SKILLS_PATH = DATA_DIR / "inherited_skills.json"
 
 
 def make_skill_from_raw(name, raw, kind="unknown", default_prob=35.0):
-prob = parse_probability_max(raw)
-if prob is None:
-prob = float(default_prob)
-return Skill(name=name, raw=raw or "", kind=kind, base_prob=float(prob), level=20, awaken=True)
-
+    prob = parse_probability_max(raw)
+    if prob is None:
+        prob = float(default_prob)
+    return Skill(
+        name=name,
+        raw=raw or "",
+        kind=kind,
+        base_prob=float(prob),
+        level=20,
+        awaken=True,
+    )
 def skill_display(entry):
 raw = entry.get("raw", "") or ""
 prob = entry.get("base_prob", None)
