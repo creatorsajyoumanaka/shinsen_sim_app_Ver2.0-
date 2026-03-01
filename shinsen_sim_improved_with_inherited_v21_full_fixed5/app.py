@@ -1,6 +1,14 @@
+
 # -*- coding: utf-8 -*-
+"""
+信長真戦シミュレーター（Streamlit UI）
+- 固有戦法: unique_skills.json (owner/name/id どれでも参照できるように吸収)
+- 伝授戦法: inherited_skills.json
+- 編成保存: localStorage に保存（同一PC/ブラウザ）
+"""
+from __future__ import annotations
+
 import json
-import re
 from pathlib import Path
 
 import pandas as pd
@@ -10,20 +18,19 @@ import streamlit.components.v1 as components
 import engine
 from engine import Unit, Skill, simulate_battle, extract_max_from_arrow, parse_probability_max
 
-_LAST_KEY = "shinsen_sim:last_comp_v1"
-
 APP_TITLE = "信長真戦シミュレーター（Ver2.0.1）"
-
 DATA_DIR = Path(__file__).parent
 UNITS_PATH = DATA_DIR / "units.json"
 UNIQUE_SKILLS_PATH = DATA_DIR / "unique_skills.json"
 INHERITED_SKILLS_PATH = DATA_DIR / "inherited_skills.json"
 
+_LAST_KEY = "shinsen_sim:last_comp_v1"
+
 
 # -----------------------------
-# LocalStorage helpers
+# localStorage helpers
 # -----------------------------
-def _ls_set(key: str, value: dict):
+def _ls_set(key: str, value: dict) -> None:
     payload = json.dumps(value, ensure_ascii=False)
     components.html(
         f"<script>localStorage.setItem({json.dumps(key)}, {json.dumps(payload)});</script>",
@@ -32,6 +39,7 @@ def _ls_set(key: str, value: dict):
 
 
 def _ls_get(key: str):
+    # localStorage -> query_param に載せる（Streamlit Python 側では直接読めないので）
     components.html(
         f"""
         <script>
@@ -63,13 +71,14 @@ def _ls_get(key: str):
 
 def _build_comp_state() -> dict:
     """
-    session_state から「編成に関係するキー」だけ拾って保存する（汎用版）
+    session_state から「編成に関係するキー」だけ拾って保存（汎用）
     """
-    keep = {}
+    keep: dict = {}
+
     for k, v in st.session_state.items():
         ks = str(k)
-        if any(x in ks for x in ["ally", "enemy"]) and any(
-            x in ks for x in ["unit", "name", "skill", "inh", "us_", "awake"]
+        if any(x in ks for x in ("ally", "enemy")) and any(
+            x in ks for x in ("unit", "name", "skill", "inh", "us_", "awake", "sk1", "sk2")
         ):
             try:
                 json.dumps(v, ensure_ascii=False)
@@ -77,14 +86,14 @@ def _build_comp_state() -> dict:
             except Exception:
                 pass
 
-    for opt_key in ["seed", "TROOP_SCALE", "troop_scale"]:
+    for opt_key in ("seed", "TROOP_SCALE", "troop_scale", "max_turns"):
         if opt_key in st.session_state:
             keep[opt_key] = st.session_state[opt_key]
 
     return keep
 
 
-def _apply_comp_state(data: dict):
+def _apply_comp_state(data: dict) -> None:
     if not isinstance(data, dict):
         return
     for k, v in data.items():
@@ -94,23 +103,21 @@ def _apply_comp_state(data: dict):
 # -----------------------------
 # Skill helpers
 # -----------------------------
-def make_skill_from_raw(name, raw, kind="unknown", default_prob=35.0):
+def make_skill_from_raw(name: str, raw: str, kind: str = "unknown", default_prob: float = 35.0) -> Skill:
     prob = parse_probability_max(raw, default=default_prob)
-    if prob is None:
-        prob = float(default_prob)
     return Skill(
         name=name,
         raw=raw or "",
         kind=kind,
-        base_prob=float(prob),  # ★engineは「%」想定
+        base_prob=float(prob),  # engine 側で /100 する（ここは %）
         level=20,
         awaken=True,
     )
 
 
-def skill_display(entry):
-    raw = entry.get("raw", "") or ""
-    prob = entry.get("base_prob", None)
+def skill_display(entry: dict):
+    raw = (entry.get("raw") or "") if isinstance(entry, dict) else ""
+    prob = entry.get("base_prob") if isinstance(entry, dict) else None
 
     if raw:
         pmax = parse_probability_max(raw)
@@ -119,7 +126,6 @@ def skill_display(entry):
 
     if prob is None:
         prob = "—"
-
     raw_max = extract_max_from_arrow(raw) if raw else ""
     return prob, raw_max
 
@@ -129,6 +135,8 @@ def skill_display(entry):
 # -----------------------------
 @st.cache_data
 def _normalize_unit(u: dict) -> dict:
+    # units.json は base_stats に能力値が入っている想定（wu/int/lea/spd 等）
+    u = dict(u)
     bs = u.get("base_stats") or {}
 
     if "wu" not in u:
@@ -150,20 +158,23 @@ def _normalize_unit(u: dict) -> dict:
             u["unique_skill_name"] = us_key
     else:
         u["unique_skill_name"] = ""
+
     return u
 
 
+@st.cache_data
 def load_units():
     raw = json.loads(UNITS_PATH.read_text(encoding="utf-8"))
     return [_normalize_unit(u) for u in raw]
 
 
+@st.cache_data
 def load_unique_skill_list():
     """
-    Load unique skills from json.
-    Supports both:
-      - legacy list-of-dicts schema ('name'/'raw')
-      - converted schema ('id'/'name'/'owner'/'raw_max')
+    unique_skills.json を読む（互換: list / dict どちらでもOK）
+    item schema:
+      - legacy: {name, raw, base_prob?}
+      - converted: {id, name, owner, raw_max/raw, prob_max/prob, kind/type}
     """
     data = json.loads(UNIQUE_SKILLS_PATH.read_text(encoding="utf-8"))
     if isinstance(data, dict):
@@ -178,38 +189,39 @@ def load_unique_skill_list():
 
         sid = item.get("id") or item.get("skill_id") or item.get("name")
         name = item.get("name") or sid or "UNKNOWN"
-        owner = item.get("owner") or item.get("holder") or item.get("character")
-        kind = item.get("kind") or ""
+        owner = item.get("owner") or item.get("holder") or item.get("character") or ""
+        kind = item.get("kind") or item.get("type") or "unique"
         raw = item.get("raw_max") or item.get("raw") or item.get("raw_text") or ""
 
+        # prob が入っている場合は % として採用（0-1 の場合だけ % へ）
         prob = item.get("prob_max") if item.get("prob_max") is not None else item.get("prob")
-        prob = float(prob) if isinstance(prob, (int, float)) else None
+        prob = float(prob) if isinstance(prob, (int, float, str)) and str(prob).strip() != "" else None
+        if prob is not None and prob <= 1.0:
+            prob = prob * 100.0
 
-        s = make_skill_from_raw(name=name, kind=kind, raw=raw)
-
-        if sid:
-            s["id"] = sid
-        if owner:
-            s["owner"] = owner
+        s = {"id": sid, "name": name, "owner": owner, "kind": kind, "raw": raw}
         if prob is not None:
-            # ★engineは「%」想定。0-1で入ってたら%に補正
-            s["base_prob"] = prob * 100.0 if prob <= 1.0 else prob
-
+            s["base_prob"] = prob
         out.append(s)
 
     return out
 
 
+@st.cache_data
 def load_unique_skills():
     skills = load_unique_skill_list()
     m = {}
     for s in skills:
-        name = s.get("name")
-        if name:
-            m[name] = s
+        nm = s.get("name")
         sid = s.get("id")
+        if nm:
+            m[nm] = s
         if sid:
             m[sid] = s
+        owner = s.get("owner")
+        if owner:
+            # owner -> skill としても参照できるようにする
+            m[owner] = s
     return m
 
 
@@ -220,10 +232,12 @@ def load_inherited_skills():
     return []
 
 
+units = load_units()
 unique_skill_list = load_unique_skill_list()
 unique_skill_map = load_unique_skills()
-units = load_units()
+base_inherited = load_inherited_skills()
 
+# Attach correct unique skill ids by owner (units.json may be missing or wrong)
 _owner_to_us = {s.get("owner"): s for s in unique_skill_list if s.get("owner")}
 for u in units:
     nm = u.get("name")
@@ -232,8 +246,8 @@ for u in units:
         u["unique_skill_id"] = us.get("id") or us.get("name")
         u["unique_skill_name"] = us.get("name")
 
-base_inherited = load_inherited_skills()
 
+# session custom skills
 if "custom_inherited" not in st.session_state:
     st.session_state.custom_inherited = []
 if "custom_unique" not in st.session_state:
@@ -241,16 +255,20 @@ if "custom_unique" not in st.session_state:
 
 
 def merged_inherited():
-    merged = {s["name"]: s for s in base_inherited}
+    merged = {s["name"]: s for s in base_inherited if isinstance(s, dict) and "name" in s}
     for s in st.session_state.custom_inherited:
-        merged[s["name"]] = s
+        if isinstance(s, dict) and "name" in s:
+            merged[s["name"]] = s
     return list(merged.values())
 
 
 def merged_unique_skill_map(base_map, units_list):
+    """base + custom_unique + units placeholders"""
     merged = dict(base_map) if base_map else {}
 
     for s in st.session_state.get("custom_unique", []):
+        if not isinstance(s, dict):
+            continue
         nm = (s.get("name") or "").strip()
         if not nm:
             continue
@@ -258,12 +276,15 @@ def merged_unique_skill_map(base_map, units_list):
             "name": nm,
             "owner": (s.get("owner") or "").strip(),
             "raw": (s.get("raw") or "").strip(),
+            "kind": s.get("kind") or "unique",
         }
 
     for u in units_list or []:
-        us_name = (u.get("unique_skill") or "").strip()
+        us_name = (u.get("unique_skill_id") or u.get("unique_skill") or "").strip()
+        if us_name.startswith("UNQ_"):
+            us_name = us_name[4:]
         if us_name and us_name not in merged:
-            merged[us_name] = {"name": us_name, "raw": "", "owner": u.get("name", "")}
+            merged[us_name] = {"name": us_name, "raw": "", "owner": u.get("name", ""), "kind": "unique"}
 
     return merged
 
@@ -291,13 +312,12 @@ def normalize_unit(raw: dict) -> dict:
 
     if "unique_skill_id" in u and isinstance(u["unique_skill_id"], str):
         u["unique_skill_id"] = u["unique_skill_id"].strip()
-
     return u
 
 
-def get_unit_by_name(name):
+def get_unit_by_name(name: str):
     for u in units:
-        if u["name"] == name:
+        if u.get("name") == name:
             return normalize_unit(u)
     return None
 
@@ -375,7 +395,7 @@ with st.sidebar:
         ckind = st.selectbox("種別", ["unknown", "active", "charge", "command", "passive", "troop"], index=0, key="custom_skill_kind")
         craw = st.text_area("raw（ゲーム内説明を貼り付け）", height=180, key="custom_skill_raw")
 
-        if st.button("追加/上書き"):
+        if st.button("追加/上書き", key="add_custom_inh"):
             if cname.strip():
                 st.session_state.custom_inherited.append(
                     {"name": cname.strip(), "kind": ckind, "base_prob": float(cprob), "raw": craw.strip()}
@@ -385,26 +405,28 @@ with st.sidebar:
                 st.warning("戦法名を入力してください。")
 
     st.divider()
-    seed = st.number_input("乱数シード（同じなら再現）", min_value=0, max_value=999999, value=42, step=1)
-    max_turns = st.slider("最大ターン数", min_value=1, max_value=8, value=8, step=1)
 
-troop_scale = st.slider("ダメージスケール(TROOP_SCALE)", min_value=1000, max_value=50000, value=10000, step=1000)
+    seed = st.number_input("乱数シード（同じなら再現）", min_value=0, max_value=999999, value=42, step=1, key="seed")
+    max_turns = st.slider("最大ターン数", min_value=1, max_value=8, value=8, step=1, key="max_turns")
+    troop_scale = st.slider("ダメージスケール(TROOP_SCALE)", min_value=1000, max_value=50000, value=10000, step=1000, key="troop_scale")
+
+    only_with_unique = st.checkbox("固有戦法データがある武将のみ表示", value=False)
+
 engine.TROOP_SCALE = int(troop_scale)
 
 st.subheader("編成")
 
 colA, colB = st.columns(2)
 
-only_with_unique = st.sidebar.checkbox("固有戦法データがある武将のみ表示", value=False)
+def _has_unique_data(u: dict) -> bool:
+    us = (u.get("unique_skill_id") or u.get("unique_skill") or "").strip()
+    if us.startswith("UNQ_"):
+        us = us[4:]
+    if not us:
+        return False
+    return bool(us in unique_skill_map or f"UNQ_{us}" in unique_skill_map)
 
 if only_with_unique:
-
-    def _has_unique_data(u: dict) -> bool:
-        us = (u.get("unique_skill_id") or u.get("unique_skill") or "").strip()
-        if us.startswith("UNQ_"):
-            us = us[4:]
-        return bool(us) and (us in unique_skill_map or f"UNQ_{us}" in unique_skill_map)
-
     unit_names = [u["name"] for u in units if _has_unique_data(u)]
 else:
     unit_names = [u["name"] for u in units]
@@ -417,13 +439,8 @@ with colA:
 
 with colB:
     st.markdown("### 敵軍（赤）")
-    enemy_sel = st.multiselect(
-        "武将を3名選択",
-        options=unit_options,
-        default=unit_options[3:6] if len(unit_options) >= 6 else unit_options[:3],
-        max_selections=3,
-        key="enemy_sel",
-    )
+    enemy_default = unit_options[3:6] if len(unit_options) >= 6 else unit_options[:3]
+    enemy_sel = st.multiselect("武将を3名選択", options=unit_options, default=enemy_default, max_selections=3, key="enemy_sel")
 
 if len(ally_sel) != 3 or len(enemy_sel) != 3:
     st.info("自軍3名・敵軍3名を選択すると、下に設定とシミュレーションが表示されます。")
@@ -436,7 +453,6 @@ st.markdown("### 伝授戦法検索")
 search_kw = st.text_input("戦法名で検索（例：回天）", value="", key="search_kw")
 filtered_inherited = [s for s in inherited_db if search_kw.strip() in s["name"]]
 filtered_names = [s["name"] for s in filtered_inherited]
-
 st.caption(f"候補数: {len(filtered_names)}（全{len(inherited_names)}）")
 
 
@@ -446,28 +462,25 @@ def render_unit_panel(side: str, name: str, idx: int):
         st.error(f"{name} のデータが見つかりません")
         return None, []
 
-    us_name = (u.get("unique_skill_id") or u.get("unique_skill") or "").strip() or None
-    us_name_no_prefix = None
-    if us_name and isinstance(us_name, str) and us_name.startswith("UNQ_"):
-        us_name_no_prefix = us_name.replace("UNQ_", "", 1)
+    # 固有戦法キー揺れ吸収
+    us_key = (u.get("unique_skill_id") or u.get("unique_skill") or "").strip() or None
+    us_key_no_prefix = us_key[4:] if (us_key and us_key.startswith("UNQ_")) else us_key
 
     us_entry = (
         unique_skill_map.get(name)
-        or (unique_skill_map.get(us_name) if us_name else None)
-        or (unique_skill_map.get(us_name_no_prefix) if us_name_no_prefix else None)
-        or (unique_skill_map.get(f"UNQ_{us_name}") if us_name and not us_name.startswith("UNQ_") else None)
+        or (unique_skill_map.get(us_key) if us_key else None)
+        or (unique_skill_map.get(us_key_no_prefix) if us_key_no_prefix else None)
+        or (unique_skill_map.get(f"UNQ_{us_key_no_prefix}") if us_key_no_prefix else None)
     )
 
     if us_entry:
-        us_name = us_entry.get("name", us_name)
-        us_raw = us_entry.get("raw", "")
+        us_name = us_entry.get("name", us_key_no_prefix or name)
+        us_raw = us_entry.get("raw", "") or ""
         us_kind = us_entry.get("kind") or us_entry.get("type") or "unique"
         us_prob = parse_probability_max(us_raw, default=35.0)
-
         with st.expander(f"固有戦法（シミュ反映）: {us_name}"):
             st.markdown(f"- 種別: `{us_kind}` / 発動確率（最大）: **{us_prob:.0f}%**")
             st.text(us_raw)
-
         unique_skill_obj = make_skill_from_raw(name=us_name, raw=us_raw, kind=us_kind)
     else:
         unique_skill_obj = None
@@ -480,30 +493,27 @@ def render_unit_panel(side: str, name: str, idx: int):
     local_names = filtered_names
     if inh_kw.strip():
         kw = inh_kw.strip()
-        local_names = [n for n in filtered_names if kw in n]
-    if not local_names:
-        st.caption("該当なし → 全件表示に戻しています")
-        local_names = filtered_names
+        local_names = [n for n in filtered_names if kw in n] or filtered_names
 
     c1, c2 = st.columns(2)
     with c1:
         sk1 = st.selectbox(f"伝授1（{name}）", options=["—"] + local_names, key=f"{side}_{idx}_sk1")
-        lv1 = 10
         aw1 = st.checkbox("覚醒", value=True, key=f"{side}_{idx}_aw1")
     with c2:
         sk2 = st.selectbox(f"伝授2（{name}）", options=["—"] + local_names, key=f"{side}_{idx}_sk2")
-        lv2 = 10
         aw2 = st.checkbox("覚醒 ", value=True, key=f"{side}_{idx}_aw2")
 
     chosen = []
-    for nm, lv, aw in [(sk1, lv1, aw1), (sk2, lv2, aw2)]:
+    for nm, aw in ((sk1, aw1), (sk2, aw2)):
         if nm != "—":
             entry = next((s for s in inherited_db if s["name"] == nm), None)
             if entry is None:
                 continue
-            prob, raw_max = skill_display(entry)
-            st.caption(f"{nm}｜発動確率: {prob}％｜効果: {'登録あり' if (entry.get('raw') or '').strip() else '未登録'}")
-            chosen.append((entry, lv, aw))
+            prob, _raw_max = skill_display(entry)
+            st.caption(
+                f"{nm}｜発動確率: {prob}％｜効果: {'登録あり' if (entry.get('raw') or '').strip() else '未登録'}"
+            )
+            chosen.append((entry, 10, aw))  # 伝授Lvは最大10固定
 
     unit_obj = Unit(
         name=name,
@@ -535,7 +545,6 @@ def render_unit_panel(side: str, name: str, idx: int):
 
 
 col1, col2 = st.columns(2)
-
 allies_units = []
 enemies_units = []
 
@@ -557,7 +566,7 @@ st.divider()
 st.subheader("シミュレーション")
 
 if st.button("シミュ実行", type="primary"):
-    logs, summary = simulate_battle(allies_units, enemies_units, turns=max_turns, seed=int(seed))
+    logs, summary = simulate_battle(allies_units, enemies_units, turns=int(max_turns), seed=int(seed))
 
     st.markdown("### 結果サマリー")
     c1, c2, c3, c4 = st.columns(4)
