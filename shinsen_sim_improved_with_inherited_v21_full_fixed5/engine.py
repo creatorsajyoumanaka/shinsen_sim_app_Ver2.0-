@@ -378,9 +378,9 @@ def _apply_opening_effects(allies: List[Unit], enemies: List[Unit], rng: random.
                 targets_mode = detect_targets(raw)
                 targets = _choose_target(unit, actor_allies, actor_enemies, targets_mode, rng)
 
-                p0, decay = _parse_kien_params(raw)
-                for t in targets:
-                    t.statuses["seal_attack"] = {"turns": 3, "p": p0, "decay": decay}
+               p0, decay, turns = _parse_kien_params(raw)
+for t in targets:
+    t.statuses["seal_attack"] = {"turns": turns, "p": p0, "decay": decay}
 
                 if targets:
                     names = ", ".join(t.name for t in targets)
