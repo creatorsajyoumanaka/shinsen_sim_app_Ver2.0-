@@ -46,28 +46,28 @@ def _ls_get(key: str):
 
 
 def _build_comp_state() -> dict:
-"""
-   session_state から「編成に関係するキー」だけ拾って保存する（汎用版）
-   """
-keep = {}
-for k, v in st.session_state.items():
-ks = str(k)
-# ally/enemy のユニット選択・伝授・覚醒っぽいキーだけ拾う
-if any(x in ks for x in ["ally", "enemy"]) and any(
-x in ks for x in ["unit", "name", "skill", "inh", "us_", "awake"]
-):
-try:
-json.dumps(v, ensure_ascii=False)
-keep[ks] = v
-except Exception:
-pass
+    """
+    session_state から「編成に関係するキー」だけ拾って保存する（汎用版）
+    """
+    keep = {}
+    for k, v in st.session_state.items():
+        ks = str(k)
+        # ally/enemy のユニット選択・伝授・覚醒っぽいキーだけ拾う
+        if any(x in ks for x in ["ally", "enemy"]) and any(
+            x in ks for x in ["unit", "name", "skill", "inh", "us_", "awake"]
+        ):
+            try:
+                json.dumps(v, ensure_ascii=False)
+                keep[ks] = v
+            except Exception:
+                pass
 
-# 全体設定も保存したいなら（存在するものだけ）
-for opt_key in ["seed", "TROOP_SCALE", "troop_scale"]:
-if opt_key in st.session_state:
-keep[opt_key] = st.session_state[opt_key]
+    # 全体設定も保存したいなら（存在するものだけ）
+    for opt_key in ["seed", "TROOP_SCALE", "troop_scale"]:
+        if opt_key in st.session_state:
+            keep[opt_key] = st.session_state[opt_key]
 
-return keep
+    return keep
 
 
 def _apply_comp_state(data: dict):
