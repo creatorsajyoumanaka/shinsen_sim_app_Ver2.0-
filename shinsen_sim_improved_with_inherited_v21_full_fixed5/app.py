@@ -118,30 +118,32 @@ def skill_display(entry):
 # -----------------------------
 @st.cache_data
 def _normalize_unit(u: dict) -> dict:
-# units.json は base_stats に能力値が入っている想定（str/int/lea/spd）
-bs = u.get("base_stats") or {}
-# 表示・計算で使うキー（wu/int/lea/spd/max_soldiers）を保証
-if "wu" not in u:
-u["wu"] = bs.get("wu", bs.get("str", bs.get("武勇", 0)))
-if "int" not in u:
-u["int"] = bs.get("int", bs.get("知略", 0))
-if "lea" not in u:
-u["lea"] = bs.get("lea", bs.get("統率", 0))
-if "spd" not in u:
-u["spd"] = bs.get("spd", bs.get("速度", 0))
-if "max_soldiers" not in u:
-u["max_soldiers"] = u.get("soldiers", u.get("兵力", 0))
+    # units.json は base_stats に能力値が入っている想定（str/int/lea/spd）
+    bs = u.get("base_stats") or {}
 
-# 固有戦法キーの揺れ対策（units.json 側が "UNQ_戦法名" 形式のことがある）
-us_key = u.get("unique_skill_id") or u.get("unique_skill") or ""
-if isinstance(us_key, str):
-if us_key.startswith("UNQ_"):
-u["unique_skill_name"] = us_key.split("_", 1)[1]
-else:
-u["unique_skill_name"] = us_key
-else:
-u["unique_skill_name"] = ""
-return u
+    # 表示・計算で使うキー（wu/int/lea/spd/max_soldiers）を保証
+    if "wu" not in u:
+        u["wu"] = bs.get("wu", bs.get("str", bs.get("武勇", 0)))
+    if "int" not in u:
+        u["int"] = bs.get("int", bs.get("知略", 0))
+    if "lea" not in u:
+        u["lea"] = bs.get("lea", bs.get("統率", 0))
+    if "spd" not in u:
+        u["spd"] = bs.get("spd", bs.get("速度", 0))
+    if "max_soldiers" not in u:
+        u["max_soldiers"] = u.get("soldiers", u.get("兵力", 0))
+
+    # 固有戦法キーの揺れ対策（units.json 側が "UNQ_戦法名" 形式のことがある）
+    us_key = u.get("unique_skill_id") or u.get("unique_skill") or ""
+    if isinstance(us_key, str):
+        if us_key.startswith("UNQ_"):
+            u["unique_skill_name"] = us_key.split("_", 1)[1]
+        else:
+            u["unique_skill_name"] = us_key
+    else:
+        u["unique_skill_name"] = ""
+
+    return u
 
 def load_units():
 raw = json.loads(UNITS_PATH.read_text(encoding="utf-8"))
