@@ -1,5 +1,3 @@
-
-
 # -*- coding: utf-8 -*-
 import json
 import re
@@ -12,40 +10,39 @@ import streamlit.components.v1 as components
 _LAST_KEY = "shinsen_sim:last_comp_v1"
 
 def _ls_set(key: str, value: dict):
-payload = json.dumps(value, ensure_ascii=False)
-components.html(
-f"<script>localStorage.setItem({json.dumps(key)}, {json.dumps(payload)});</script>",
-height=0,
-)
-
+    payload = json.dumps(value, ensure_ascii=False)
+    components.html(
+        f"<script>localStorage.setItem({json.dumps(key)}, {json.dumps(payload)});</script>",
+        height=0,
+    )
 
 def _ls_get(key: str):
-components.html(
-f"""
-       <script>
-       const v = localStorage.getItem({json.dumps(key)}) || "";
-       const url = new URL(window.location.href);
-       if (v) url.searchParams.set("ls_load", encodeURIComponent(v));
-       else url.searchParams.delete("ls_load");
-       window.history.replaceState(null, "", url.toString());
-       </script>
-       """,
-height=0,
-)
+    components.html(
+        f"""
+        <script>
+        const v = localStorage.getItem({json.dumps(key)}) || "";
+        const url = new URL(window.location.href);
+        if (v) url.searchParams.set("ls_load", encodeURIComponent(v));
+        else url.searchParams.delete("ls_load");
+        window.history.replaceState(null, "", url.toString());
+        </script>
+        """,
+        height=0,
+    )
 
-qp = st.query_params
-v = qp.get("ls_load")
-if not v:
-return None
-if isinstance(v, list):
-v = v[0]
+    qp = st.query_params
+    v = qp.get("ls_load")
+    if not v:
+        return None
+    if isinstance(v, list):
+        v = v[0]
 
-try:
-import urllib.parse
-decoded = urllib.parse.unquote(v)
-return json.loads(decoded)
-except Exception:
-return None
+    try:
+        import urllib.parse
+        decoded = urllib.parse.unquote(v)
+        return json.loads(decoded)
+    except Exception:
+        return None
 
 
 def _build_comp_state() -> dict:
