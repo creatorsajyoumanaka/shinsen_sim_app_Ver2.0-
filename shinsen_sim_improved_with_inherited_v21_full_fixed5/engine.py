@@ -1,4 +1,3 @@
-@@ -1,118 +1,118 @@
 
 # -*- coding: utf-8 -*-
 """
@@ -114,17 +113,32 @@ def detect_targets(raw: str) -> str:
         return "ally_single"
     if "自分" in raw or "自身" in raw:
         return "self"
-        return "se
     return "enemy_single"
 
 # Status keywords (best-effort)
-@@ -139,400 +139,403 @@
+STATUS_KEYWORDS = {
+    "威圧": "stun",
+    "麻痺": "paralyze",
+    "混乱": "confuse",
+    "無策": "silence",
+    "封撃": "disarm",
+    "挑発": "taunt",
+    "牽制": "mark_skill_target",
+    "火傷": "burn",
+    "水攻め": "flood",
+    "潰走": "collapse",
+    "消沈": "depress",
+    "疲弊": "fatigue",
+    "回生": "revive_heal",
+    "休養": "regen",
+    "離反": "leech",
+    "鉄壁": "shield",
+    "回避": "evade",
+    "先攻": "first_strike",
+    "連撃": "double_attack",
     "乱舞": "splash_attack",
     "会心": "crit",
     "奇策": "strat_crit",
-    "封撃": "seal_attack",  # 通常攻撃不可（確率で発生する封撃は別途statusesにpを持たせる）
-    "連撃": "double_attack",  # 1ターン2回 通常攻撃
-}
 }
 
 def detect_statuses(raw: str) -> List[str]:
@@ -521,5 +535,4 @@ def simulate_battle(
         "ally_soldiers": sum(u.soldiers for u in allies),
         "enemy_soldiers": sum(u.soldiers for u in enemies),
     }
-    return logs, summary
     return logs, summary
